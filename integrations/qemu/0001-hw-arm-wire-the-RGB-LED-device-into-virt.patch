@@ -1,0 +1,110 @@
+From ec87980360275c29c572b45f3a56ef16e8a69003 Mon Sep 17 00:00:00 2001
+From: RGB-driver-extraction <noreply@example.com>
+Date: Fri, 4 Sep 2026 19:47:53 +0200
+Subject: [PATCH] hw/arm: wire the RGB LED device into virt
+
+---
+ hw/arm/Kconfig        |  1 +
+ hw/arm/virt.c         | 19 +++++++++++++++++++
+ hw/misc/Kconfig       |  3 +++
+ hw/misc/meson.build   |  1 +
+ include/hw/arm/virt.h |  1 +
+ 5 files changed, 25 insertions(+)
+
+diff --git a/hw/arm/Kconfig b/hw/arm/Kconfig
+index 500bfdfe2a..73dfc59260 100644
+--- a/hw/arm/Kconfig
++++ b/hw/arm/Kconfig
+@@ -21,6 +21,7 @@ config ARM_VIRT
+     select PL011 # UART
+     select PL031 # RTC
+     select PL061 # GPIO
++    select RGB_LED
+     select GPIO_PWR
+     select PLATFORM_BUS
+     select SMBIOS
+diff --git a/hw/arm/virt.c b/hw/arm/virt.c
+index d8d27f2ef6..94023e5d0b 100644
+--- a/hw/arm/virt.c
++++ b/hw/arm/virt.c
+@@ -210,6 +210,7 @@ static const MemMapEntry base_memmap[] = {
+     [VIRT_PVTIME] =             { 0x090a0000, 0x00010000 },
+     [VIRT_SECURE_GPIO] =        { 0x090b0000, 0x00001000 },
+     [VIRT_ACPI_PCIHP] =         { 0x090c0000, ACPI_PCIHP_SIZE },
++    [VIRT_RGB_LED] =            { 0x090d0000, 0x00000100 },
+     [VIRT_MMIO] =               { 0x0a000000, 0x00000200 },
+     /* ...repeating for a total of NUM_VIRTIO_TRANSPORTS, each of that size */
+     [VIRT_PLATFORM_BUS] =       { 0x0c000000, 0x02000000 },
+@@ -1572,6 +1573,23 @@ static void create_rtc(const VirtMachineState *vms)
+     g_free(nodename);
+ }
+ 
++static void create_rgb_led(const VirtMachineState *vms)
++{
++    MachineState *ms = MACHINE(vms);
++    hwaddr base = vms->memmap[VIRT_RGB_LED].base;
++    hwaddr size = vms->memmap[VIRT_RGB_LED].size;
++    char *nodename;
++
++    sysbus_create_simple("rgb-led", base, NULL);
++
++    nodename = g_strdup_printf("/rgb-led@%" PRIx64, base);
++    qemu_fdt_add_subnode(ms->fdt, nodename);
++    qemu_fdt_setprop_string(ms->fdt, nodename, "compatible", "qemu,rgb-led");
++    qemu_fdt_setprop_sized_cells(ms->fdt, nodename, "reg",
++                                 2, base, 2, size);
++    g_free(nodename);
++}
++
+ static DeviceState *gpio_key_dev;
+ static void virt_powerdown_req(Notifier *n, void *opaque)
+ {
+@@ -3182,6 +3200,7 @@ static void machvirt_init(MachineState *machine)
+     vms->highmem_ecam &= (!firmware_loaded || aarch64);
+ 
+     create_rtc(vms);
++    create_rgb_led(vms);
+ 
+     create_pcie(vms);
+     create_cxl_host_reg_region(vms);
+diff --git a/hw/misc/Kconfig b/hw/misc/Kconfig
+index 1543ee6653..9314651d7e 100644
+--- a/hw/misc/Kconfig
++++ b/hw/misc/Kconfig
+@@ -189,6 +189,9 @@ config UNIMP
+ config LED
+     bool
+ 
++config RGB_LED
++    bool
++
+ config MAC_VIA
+     bool
+     select MOS6522
+diff --git a/hw/misc/meson.build b/hw/misc/meson.build
+index 23265f6035..5a521eb7e2 100644
+--- a/hw/misc/meson.build
++++ b/hw/misc/meson.build
+@@ -8,6 +8,7 @@ system_ss.add(when: 'CONFIG_IOMMU_TESTDEV', if_true: files('iommu-testdev.c'))
+ system_ss.add(when: 'CONFIG_UNIMP', if_true: files('unimp.c'))
+ system_ss.add(when: 'CONFIG_EMPTY_SLOT', if_true: files('empty_slot.c'))
+ system_ss.add(when: 'CONFIG_LED', if_true: files('led.c'))
++system_ss.add(when: 'CONFIG_RGB_LED', if_true: files('rgb-led.c'))
+ system_ss.add(when: 'CONFIG_PVPANIC_COMMON', if_true: files('pvpanic.c'))
+ 
+ # ARM devices
+diff --git a/include/hw/arm/virt.h b/include/hw/arm/virt.h
+index 171d44c644..2f2573a5f1 100644
+--- a/include/hw/arm/virt.h
++++ b/include/hw/arm/virt.h
+@@ -97,6 +97,7 @@ enum {
+     VIRT_NVDIMM_ACPI,
+     VIRT_PVTIME,
+     VIRT_ACPI_PCIHP,
++    VIRT_RGB_LED,
+     VIRT_LOWMEMMAP_LAST,
+ };
+ 
+-- 
+2.55.0
+

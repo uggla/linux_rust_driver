@@ -1,0 +1,96 @@
+From 00dd0e8a32f0227dec669a5e9665702062b30186 Mon Sep 17 00:00:00 2001
+From: RGB-driver-extraction <noreply@example.com>
+Date: Fri, 4 Sep 2026 19:47:44 +0200
+Subject: [PATCH] rust: add RGB driver integration
+
+---
+ rust/bindings/bindings_helper.h |  1 +
+ rust/kernel/irq/request.rs      | 12 +++++++++---
+ samples/rust/Kconfig            |  9 +++++++++
+ samples/rust/Makefile           |  1 +
+ 4 files changed, 20 insertions(+), 3 deletions(-)
+
+diff --git a/rust/bindings/bindings_helper.h b/rust/bindings/bindings_helper.h
+index 2e43c66..ea88b97 100644
+--- a/rust/bindings/bindings_helper.h
++++ b/rust/bindings/bindings_helper.h
+@@ -43,6 +43,7 @@
+ #include <linux/clk.h>
+ #include <linux/completion.h>
+ #include <linux/configfs.h>
++#include <linux/cdev.h>
+ #include <linux/cpu.h>
+ #include <linux/cpufreq.h>
+ #include <linux/cpumask.h>
+diff --git a/rust/kernel/irq/request.rs b/rust/kernel/irq/request.rs
+index b150563..2ceeaeb 100644
+--- a/rust/kernel/irq/request.rs
++++ b/rust/kernel/irq/request.rs
+@@ -261,7 +261,10 @@ pub fn synchronize(&self, dev: &Device<Bound>) -> Result {
+ /// # Safety
+ ///
+ /// This function should be only used as the callback in `request_irq`.
+-unsafe extern "C" fn handle_irq_callback<T: Handler>(_irq: i32, ptr: *mut c_void) -> c_uint {
++unsafe extern "C" fn handle_irq_callback<T: Handler + 'static>(
++    _irq: i32,
++    ptr: *mut c_void,
++) -> c_uint {
+     // SAFETY: `ptr` is a pointer to `Registration<T>` set in `Registration::new`
+     let registration = unsafe { &*(ptr as *const Registration<T>) };
+     // SAFETY: The irq callback is removed before the device is unbound, so the fact that the irq
+@@ -480,7 +483,7 @@ pub fn synchronize(&self, dev: &Device<Bound>) -> Result {
+ /// # Safety
+ ///
+ /// This function should be only used as the callback in `request_threaded_irq`.
+-unsafe extern "C" fn handle_threaded_irq_callback<T: ThreadedHandler>(
++unsafe extern "C" fn handle_threaded_irq_callback<T: ThreadedHandler + 'static>(
+     _irq: i32,
+     ptr: *mut c_void,
+ ) -> c_uint {
+@@ -496,7 +499,10 @@ pub fn synchronize(&self, dev: &Device<Bound>) -> Result {
+ /// # Safety
+ ///
+ /// This function should be only used as the callback in `request_threaded_irq`.
+-unsafe extern "C" fn thread_fn_callback<T: ThreadedHandler>(_irq: i32, ptr: *mut c_void) -> c_uint {
++unsafe extern "C" fn thread_fn_callback<T: ThreadedHandler + 'static>(
++    _irq: i32,
++    ptr: *mut c_void,
++) -> c_uint {
+     // SAFETY: `ptr` is a pointer to `ThreadedRegistration<T>` set in `ThreadedRegistration::new`
+     let registration = unsafe { &*(ptr as *const ThreadedRegistration<T>) };
+     // SAFETY: The irq callback is removed before the device is unbound, so the fact that the irq
+diff --git a/samples/rust/Kconfig b/samples/rust/Kconfig
+index c376eb8..fc133b7 100644
+--- a/samples/rust/Kconfig
++++ b/samples/rust/Kconfig
+@@ -10,6 +10,15 @@ menuconfig SAMPLES_RUST
+ 
+ if SAMPLES_RUST
+ 
++config SAMPLE_RUST_RGB
++	tristate "RGB character device"
++	help
++	  Build a minimal Rust character driver accepting RGB hexadecimal
++	  values through a manually-created /dev/rgb node.
++
++	  To compile this driver as a module, choose M here. The module is
++	  called rgb.
++
+ config SAMPLE_RUST_CONFIGFS
+ 	tristate "Configfs sample"
+ 	depends on CONFIGFS_FS
+diff --git a/samples/rust/Makefile b/samples/rust/Makefile
+index cf8422f..115e72f 100644
+--- a/samples/rust/Makefile
++++ b/samples/rust/Makefile
+@@ -2,6 +2,7 @@
+ ccflags-y += -I$(src)				# needed for trace events
+ 
+ obj-$(CONFIG_SAMPLE_RUST_MINIMAL)		+= rust_minimal.o
++obj-$(CONFIG_SAMPLE_RUST_RGB)			+= rgb.o
+ obj-$(CONFIG_SAMPLE_RUST_MISC_DEVICE)		+= rust_misc_device.o
+ obj-$(CONFIG_SAMPLE_RUST_PRINT)			+= rust_print.o
+ obj-$(CONFIG_SAMPLE_RUST_DEBUGFS)		+= rust_debugfs.o
+-- 
+2.55.0
+

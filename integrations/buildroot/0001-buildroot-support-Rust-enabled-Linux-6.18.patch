@@ -1,0 +1,76 @@
+From 5094e0e343c2097ce7a0c89b500d11981d109b71 Mon Sep 17 00:00:00 2001
+From: RGB-driver-extraction <noreply@example.com>
+Date: Fri, 4 Sep 2026 19:48:02 +0200
+Subject: [PATCH] buildroot: support Rust-enabled Linux 6.18
+
+---
+ linux/linux.mk                 | 9 ++++++++-
+ package/rust-bin/rust-bin.hash | 3 +++
+ package/rust-bin/rust-bin.mk   | 3 +++
+ 3 files changed, 14 insertions(+), 1 deletion(-)
+
+diff --git a/linux/linux.mk b/linux/linux.mk
+index e790daff66..ff23472ffd 100644
+--- a/linux/linux.mk
++++ b/linux/linux.mk
+@@ -74,6 +74,11 @@ LINUX_DEPENDENCIES = \
+ 	$(BR2_MAKE_HOST_DEPENDENCY)
+ LINUX_MAKE = $(BR2_MAKE)
+ 
++# A Rust-enabled kernel needs bindgen at configuration and build time.
++ifeq ($(BR2_PACKAGE_HOST_RUSTC),y)
++LINUX_DEPENDENCIES += host-rust-bindgen
++endif
++
+ # The kernel CONFIG_EXTRA_FIRMWARE feature requires firmware files at build
+ # time. Make sure they are available before the kernel builds.
+ LINUX_DEPENDENCIES += \
+@@ -157,7 +162,9 @@ endif
+ # Disable building host tools with -Werror: newer gcc versions can be
+ # extra picky about some code (https://bugs.busybox.net/show_bug.cgi?id=14826)
+ LINUX_MAKE_FLAGS = \
+-	HOSTCC="$(HOSTCC) $(subst -I/,-isystem /,$(subst -I /,-isystem /,$(HOST_CFLAGS))) $(HOST_LDFLAGS)" \
++	HOSTCC="$(HOSTCC)" \
++	HOSTCFLAGS="$(subst -I/,-isystem /,$(subst -I /,-isystem /,$(HOST_CFLAGS)))" \
++	HOSTLDFLAGS="$(HOST_LDFLAGS)" \
+ 	ARCH=$(KERNEL_ARCH) \
+ 	KCFLAGS="$(LINUX_CFLAGS)" \
+ 	INSTALL_MOD_PATH=$(TARGET_DIR) \
+diff --git a/package/rust-bin/rust-bin.hash b/package/rust-bin/rust-bin.hash
+index a957d756e8..7873cb6c3d 100644
+--- a/package/rust-bin/rust-bin.hash
++++ b/package/rust-bin/rust-bin.hash
+@@ -1,6 +1,9 @@
+ # Generated with utils/update-rust
+ # Do not edit manually
+ 
++# From https://static.rust-lang.org/dist/rust-src-1.96.0.tar.xz.sha256
++sha256  7875f9f4b91455ac25e2ea0e0f1cb3d7d16c309ef0720778538d20ed0e9b818b  rust-src-1.96.0.tar.xz
++
+ # From https://static.rust-lang.org/dist/rust-1.96.0-aarch64-unknown-linux-gnu.tar.xz.sha256
+ sha256  371eadcca97062219cbd8593628eb5d2802bc370515d085fedce1b56b2baed57  rust-1.96.0-aarch64-unknown-linux-gnu.tar.xz
+ # From https://static.rust-lang.org/dist/rust-1.96.0-i686-unknown-linux-gnu.tar.xz.sha256
+diff --git a/package/rust-bin/rust-bin.mk b/package/rust-bin/rust-bin.mk
+index 8549d293d6..6a63cbcdfe 100644
+--- a/package/rust-bin/rust-bin.mk
++++ b/package/rust-bin/rust-bin.mk
+@@ -14,6 +14,7 @@ RUST_BIN_LICENSE_FILES = LICENSE-APACHE LICENSE-MIT
+ HOST_RUST_BIN_PROVIDES = host-rustc
+ 
+ HOST_RUST_BIN_SOURCE = rust-$(RUST_BIN_VERSION)-$(RUSTC_HOST_NAME).tar.xz
++HOST_RUST_BIN_EXTRA_DOWNLOADS = rust-src-$(RUST_BIN_VERSION).tar.xz
+ 
+ ifeq ($(BR2_PACKAGE_HOST_RUSTC_TARGET_ARCH_SUPPORTS),y)
+ HOST_RUST_BIN_EXTRA_DOWNLOADS += rust-std-$(RUST_BIN_VERSION)-$(RUSTC_TARGET_NAME).tar.xz
+@@ -45,6 +46,8 @@ HOST_RUST_BIN_INSTALL_OPTS = \
+ define HOST_RUST_BIN_INSTALL_RUSTC
+ 	(cd $(@D); \
+ 		./install.sh $(HOST_RUST_BIN_INSTALL_OPTS))
++	(cd $(@D)/std/rust-src-$(RUST_BIN_VERSION); \
++		./install.sh $(HOST_RUST_BIN_INSTALL_COMMON_OPTS))
+ endef
+ 
+ ifeq ($(BR2_PACKAGE_HOST_RUSTC_TARGET_ARCH_SUPPORTS),y)
+-- 
+2.55.0
+

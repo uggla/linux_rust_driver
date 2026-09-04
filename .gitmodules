@@ -1,0 +1,6 @@
+[submodule "qemu"]
+	path = vendor/qemu
+	url = https://gitlab.com/qemu-project/qemu.git
+[submodule "buildroot"]
+	path = vendor/buildroot
+	url = https://github.com/buildroot/buildroot.git
