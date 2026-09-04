@@ -14,7 +14,7 @@ JOBS ?= $(shell nproc)
 
 STAGES := 01-character-device 02-mmio-fixed 03-device-tree 04-ioctl-sync 05-ioctl-async
 
-.PHONY: all setup check-layout prepare-qemu prepare-buildroot qemu image run smoke check check-stages clean
+.PHONY: all setup check-layout prepare-qemu prepare-buildroot qemu image run smoke check check-stages slides slides-serve slides-pdf slides-pdf-image clean
 
 all: qemu image
 
@@ -85,6 +85,20 @@ check-stages: qemu
 	@set -e; for stage in $(STAGES); do \
 		$(MAKE) image RGB_DRIVER_STAGE=$$stage; \
 	done
+
+slides:
+	mkdir -p $(BUILD)/uv-cache
+	UV_CACHE_DIR=$(BUILD)/uv-cache ./server.py --build-only
+
+slides-serve:
+	mkdir -p $(BUILD)/uv-cache
+	UV_CACHE_DIR=$(BUILD)/uv-cache ./server.py --watch
+
+slides-pdf: slides
+	./build_pdf/build_pdf.sh
+
+slides-pdf-image:
+	./build_pdf/build_image.sh
 
 clean:
 	@test "$(BUILD)" = "$(ROOT)/.build"

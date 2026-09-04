@@ -1,0 +1,668 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <title>User Space, Kernel, Hardware — Linux Drivers with Rust</title>
+    <meta name="description" content="Exploring Linux drivers with Rust and QEMU" />
+    <meta name="author" content="Cyril Marin, René Ribaud" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+
+    <link rel="stylesheet" href="../reveal.js/dist/reveal.css" />
+    <link rel="stylesheet" href="../reveal.js/dist/theme/beige.css" />
+    <link rel="stylesheet" href="css/stackoverflow-light.css" />
+
+    <style>
+      :root {
+        --user: #2b6cb0;
+        --kernel: #805ad5;
+        --hardware: #c05621;
+        --muted: #5f6368;
+      }
+      .reveal {
+        font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;
+        font-size: 36px;
+      }
+      .reveal h1 { font-size: 2em; }
+      .reveal h2 { font-size: 1.45em; margin-top: 20px; }
+      .reveal h3 { font-size: 1.2em; }
+      .reveal ul { margin: 0; }
+      .reveal li { margin: 0.28em 0; }
+      .reveal pre { width: 100%; font-size: 17px; }
+      .reveal pre code { max-height: 510px; }
+      .reveal section img { border: 0; box-shadow: none; background: transparent; }
+      .left { text-align: left; }
+      .small { font-size: 0.72em; }
+      .tiny { font-size: 0.55em; }
+      .muted { color: var(--muted); }
+      .planned { color: #9c4221; font-weight: 700; text-transform: uppercase; }
+      .columns { display: grid; grid-template-columns: 1fr 1fr; gap: 28px; align-items: center; }
+      .three-columns { display: grid; grid-template-columns: repeat(3, 1fr); gap: 18px; }
+      .card { border: 3px solid #ddd; border-radius: 14px; padding: 18px; background: rgba(255,255,255,.6); }
+      .user { border-color: var(--user); }
+      .kernel { border-color: var(--kernel); }
+      .hardware { border-color: var(--hardware); }
+      .flow { display: flex; align-items: stretch; justify-content: center; gap: 10px; }
+      .flow .card { flex: 1; font-size: .72em; }
+      .arrow { align-self: center; font-size: 1.4em; }
+      .registers { margin: 0 auto; font-size: .7em; }
+      .registers th, .registers td { padding: .25em .7em; }
+      .section-title h2 { margin-top: 170px; font-size: 1.8em; }
+      .demo { border-left: 10px solid #2f855a; padding-left: 24px; text-align: left; }
+      .demo h2 { color: #276749; }
+      .bio { font-size: .65em; text-align: left; }
+      .bio-image { max-height: 390px; }
+      .takeaway { font-size: 1.15em; margin-top: 90px; }
+      code.inline { color: #7b341e; background: #fffaf0; padding: 0 .2em; }
+    </style>
+  </head>
+
+  <body>
+    <div class="reveal">
+      <div class="slides">
+        <section>
+          <h1>User Space, Kernel, Hardware</h1>
+          <h2>Exploring Linux Drivers with Rust</h2>
+          <img src="images/snowcamp_logo.png" alt="Snowcamp" width="24%" />
+          <p>Cyril Marin &amp; René Ribaud</p>
+          <aside class="notes">Opening — 30 seconds. This is a guided trip through three execution worlds, using one deliberately small RGB device.</aside>
+        </section>
+
+        <section data-background="images/snowcamp_sponsors.png" data-background-size="cover">
+          <aside class="notes">Sponsors — 15 seconds.</aside>
+        </section>
+
+        <section>
+          <h2>Who are we?</h2>
+          <div class="columns">
+            <div>
+              <img class="bio-image" src="images/cyril.png" alt="Cyril Marin" />
+              <div class="bio">
+                <strong>Cyril Marin</strong><br />Cloud engineer<br />10+ years of experience<br />YAML and shell wielder
+              </div>
+            </div>
+            <div>
+              <img class="bio-image" src="images/uggla.png" alt="René Ribaud" />
+              <div class="bio">
+                <strong>René “Uggla” Ribaud</strong><br />Software engineer<br />Linux and FLOSS since 1995<br />Rust and Python enthusiast
+              </div>
+            </div>
+          </div>
+          <aside class="notes">Speakers — 45 seconds. Keep the biographies short; the device is the third speaker.</aside>
+        </section>
+
+        <section>
+          <h2>One command, three worlds</h2>
+          <div class="flow">
+            <div class="card user"><strong>User space</strong><br /><code>echo FF0000</code></div>
+            <div class="arrow">→</div>
+            <div class="card kernel"><strong>Linux kernel</strong><br />Rust driver</div>
+            <div class="arrow">→</div>
+            <div class="card hardware"><strong>Hardware</strong><br />QEMU RGB device</div>
+          </div>
+          <p class="takeaway">We will build every boundary ourselves.</p>
+          <aside class="notes">Goal — 1 minute. The small scope makes the interfaces visible: syscall, VFS, MMIO and later an interrupt.</aside>
+        </section>
+
+        <section>
+          <h2>Our route</h2>
+          <ol class="left small">
+            <li>Build a virtual RGB peripheral in QEMU</li>
+            <li>Register a Rust character device</li>
+            <li>Talk to hardware through hard-coded MMIO</li>
+            <li>Discover resources through the Device Tree</li>
+            <li>Add an ioctl and move work off the caller</li>
+            <li>Target hardware fade completion through an IRQ</li>
+          </ol>
+          <p><strong>Explain → inspect code → demonstrate</strong></p>
+          <aside class="notes">Roadmap — 45 seconds. Stages 1–5 work today. The last stage is an explicit design target.</aside>
+        </section>
+
+        <section class="section-title">
+          <h2>1 — First, build the hardware</h2>
+          <p>QEMU as our virtual electronics bench</p>
+        </section>
+
+        <section>
+          <h2>We are acting like a board designer</h2>
+          <div class="columns left small">
+            <div class="card hardware">
+              <h3>A hardware designer decides</h3>
+              <ul>
+                <li>register semantics</li>
+                <li>address ranges</li>
+                <li>interrupt wiring</li>
+                <li>firmware description</li>
+              </ul>
+            </div>
+            <div class="card">
+              <h3>At our scale</h3>
+              <ul>
+                <li>C structs hold device state</li>
+                <li>QEMU callbacks emulate bus accesses</li>
+                <li>the <code>virt</code> board maps the device</li>
+                <li>QEMU emits a Device Tree node</li>
+              </ul>
+            </div>
+          </div>
+          <aside class="notes">2 minutes. Stress that QEMU is not mocking the driver API: it models the other side of the hardware contract.</aside>
+        </section>
+
+        <section>
+          <h2>A tiny MMIO contract</h2>
+          <table class="registers">
+            <thead><tr><th>Offset</th><th>Register</th><th>Meaning</th></tr></thead>
+            <tbody>
+              <tr><td><code>0x00</code></td><td>RED</td><td>8-bit red channel</td></tr>
+              <tr><td><code>0x04</code></td><td>GREEN</td><td>8-bit green channel</td></tr>
+              <tr><td><code>0x08</code></td><td>BLUE</td><td>8-bit blue channel</td></tr>
+              <tr><td><code>0x0c</code></td><td>APPLY</td><td>write 1 to apply</td></tr>
+              <tr><td><code>0x10</code></td><td>STATUS</td><td>busy / ready / error</td></tr>
+            </tbody>
+          </table>
+          <p>Physical base: <code class="inline">0x090d0000</code> · window: <code class="inline">0x100</code></p>
+          <aside class="notes">1 minute. Registers are 32-bit accesses even though RGB values are limited to 8 bits.</aside>
+        </section>
+
+        <section>
+          <h2>QEMU: reads and writes become callbacks</h2>
+          <pre><code class="language-c" data-trim data-line-numbers="1-5|7-17">
+static const MemoryRegionOps rgb_led_ops = {
+    .read = rgb_led_read,
+    .write = rgb_led_write,
+    .endianness = DEVICE_NATIVE_ENDIAN,
+};
+
+static void rgb_led_write(void *opaque, hwaddr offset,
+                          uint64_t value, unsigned size)
+{
+    RGBLedState *s = opaque;
+    switch (offset) {
+    case RGB_LED_REG_RED:   s->red = value &amp; 0xff; break;
+    case RGB_LED_REG_GREEN: s->green = value &amp; 0xff; break;
+    case RGB_LED_REG_BLUE:  s->blue = value &amp; 0xff; break;
+    case RGB_LED_REG_APPLY: if (value == 1) rgb_led_apply(s); break;
+    }
+}
+          </code></pre>
+          <aside class="notes">1.5 minutes. Point at opaque state, offset dispatch and explicit access size policy in the full source.</aside>
+        </section>
+
+        <section>
+          <h2>QEMU: place it on the <code>virt</code> board</h2>
+          <pre><code class="language-c" data-trim data-line-numbers="1|3-11">
+[VIRT_RGB_LED] = { 0x090d0000, 0x00000100 },
+
+sysbus_create_simple("rgb-led", base, NULL);
+
+nodename = g_strdup_printf("/rgb-led@%" PRIx64, base);
+qemu_fdt_add_subnode(ms-&gt;fdt, nodename);
+qemu_fdt_setprop_string(ms-&gt;fdt, nodename,
+                        "compatible", "qemu,rgb-led");
+qemu_fdt_setprop_sized_cells(ms-&gt;fdt, nodename, "reg",
+                             2, base, 2, size);
+          </code></pre>
+          <p class="small">The address map and firmware description are two views of the same contract.</p>
+          <aside class="notes">1.5 minutes. Mention Meson/Kconfig integration briefly. The compatible string becomes the handshake with Linux later.</aside>
+        </section>
+
+        <section class="demo">
+          <h2>Demo 1 — No driver, just registers</h2>
+          <ol class="small">
+            <li>Boot the prepared VM with <code>make run</code></li>
+            <li><code>Ctrl-a c</code>: enter the QEMU monitor</li>
+            <li>Inspect physical memory, then return with <code>Ctrl-a c</code></li>
+            <li>Use <code>devmem</code> for RED, GREEN, BLUE and APPLY</li>
+            <li>Observe <code>rgb-led: apply RGB(255, 0, 0)</code></li>
+          </ol>
+          <pre><code class="language-shell" data-trim>
+devmem 0x090d0000 32 0xff
+devmem 0x090d0004 32 0x00
+devmem 0x090d0008 32 0x00
+devmem 0x090d000c 32 0x01
+          </code></pre>
+          <aside class="notes">
+            DEMO — 2 minutes. The image and QEMU must be prebuilt. In the monitor use “xp /5wx 0x090d0000”. Back in Linux run the four devmem writes. Expected QEMU line: rgb-led: apply RGB(255, 0, 0). Fallback: show the commands and expected line on this slide.
+          </aside>
+        </section>
+
+        <section class="section-title">
+          <h2>2 — A character device, but no hardware</h2>
+          <p>Build the user space ↔ kernel boundary first</p>
+        </section>
+
+        <section>
+          <h2>What happens to <code>echo FF0000 &gt; /dev/rgb</code>?</h2>
+          <div class="flow">
+            <div class="card user">shell<br /><code>write(fd, buf, 7)</code></div>
+            <div class="arrow">→</div>
+            <div class="card kernel">VFS<br /><code>file_operations.write</code></div>
+            <div class="arrow">→</div>
+            <div class="card kernel">our Rust callback<br /><code>rgb_write</code></div>
+          </div>
+          <p class="small"><code>/dev/rgb</code> is a rendezvous point, not the hardware itself.</p>
+          <aside class="notes">1 minute. This stage deliberately stops before MMIO so we can isolate the VFS concepts.</aside>
+        </section>
+
+        <section>
+          <h2>Major, minor, and <code>mknod</code></h2>
+          <div class="columns left small">
+            <div>
+              <p><strong>Major</strong></p>
+              <p>selects the registered driver</p>
+              <p><strong>Minor</strong></p>
+              <p>selects one device managed by it</p>
+            </div>
+            <pre><code class="language-shell" data-trim>
+cat /proc/devices
+# 240 rgb
+
+mknod /dev/rgb c 240 0
+ls -l /dev/rgb
+# crw-r--r-- ... 240, 0
+            </code></pre>
+          </div>
+          <aside class="notes">1.5 minutes. Explain that the dynamic major must be read from the log or /proc/devices; never hard-code 240 in the live demo.</aside>
+        </section>
+
+        <section>
+          <h2>Registering the Rust character device</h2>
+          <pre><code class="language-rust" data-trim data-line-numbers="1-5|7-10|12-16">
+let mut raw_fops: bindings::file_operations =
+    unsafe { MaybeUninit::zeroed().assume_init() };
+raw_fops.owner = module.as_ptr();
+raw_fops.open = Some(rgb_open);
+raw_fops.write = Some(rgb_write);
+
+to_result(unsafe {
+    bindings::alloc_chrdev_region(
+        &amp;mut dev, 0, 1, c_str!("rgb").as_char_ptr())
+})?;
+
+bindings::cdev_init(cdev_ptr, ptr::from_ref(&amp;*fops));
+to_result(unsafe { bindings::cdev_add(cdev_ptr, dev, 1) })?;
+
+let major = (dev &gt;&gt; bindings::MINORBITS) as u32;
+          </code></pre>
+          <p class="small">Stable allocations and explicit cleanup bridge Rust ownership with C kernel APIs.</p>
+          <aside class="notes">2 minutes. The actual source wraps C return values with to_result and cleans every partial failure path.</aside>
+        </section>
+
+        <section>
+          <h2>The write callback crosses a trust boundary</h2>
+          <pre><code class="language-rust" data-trim data-line-numbers="1-4|6-12">
+let user_ptr = UserPtr::from_ptr(user_buffer.cast_mut().cast());
+let mut reader = UserSlice::new(user_ptr, count).reader();
+reader.read_slice(&amp;mut buffer[..count])?;
+
+let digits = input.strip_prefix(b"#").unwrap_or(input);
+if digits.len() != 6 {
+    return None;
+}
+Some((
+    parse_byte(&amp;digits[0..2])?,
+    parse_byte(&amp;digits[2..4])?,
+    parse_byte(&amp;digits[4..6])?,
+))
+          </code></pre>
+          <aside class="notes">1 minute. Never dereference a user pointer directly. The driver accepts RRGGBB, an optional #, and surrounding whitespace.</aside>
+        </section>
+
+        <section class="demo">
+          <h2>Demo 2 — Load, use, unload</h2>
+          <pre><code class="language-shell" data-trim>
+make image RGB_DRIVER_STAGE=01-character-device
+scp -P 2222 .build/buildroot-output/01-character-device/\
+  build/linux-6.18.7/samples/rust/rgb.ko root@localhost:/tmp/
+
+insmod /tmp/rgb.ko
+major=$(awk '$2 == "rgb" { print $1 }' /proc/devices)
+mknod /dev/rgb c "$major" 0
+echo FF0000 &gt; /dev/rgb
+dmesg | tail
+rmmod rgb
+          </code></pre>
+          <aside class="notes">
+            DEMO — 2.5 minutes. Keep the VM running and use a second terminal for scp. Expected logs: module loaded, registered major, device opened, requested color, module unloaded. No QEMU RGB output yet: that absence is the point. If scp is unavailable, use the module already present under /lib/modules and explain the copy step.
+          </aside>
+        </section>
+
+        <section class="section-title">
+          <h2>3 — Cross the MMIO boundary</h2>
+          <p>Start with a physical address baked into the driver</p>
+        </section>
+
+        <section>
+          <h2>Reserve → map → access → release</h2>
+          <div class="flow tiny">
+            <div class="card kernel"><code>request_mem_region</code><br />claim ownership</div>
+            <div class="arrow">→</div>
+            <div class="card kernel"><code>ioremap</code><br />create kernel mapping</div>
+            <div class="arrow">→</div>
+            <div class="card hardware"><code>writel</code><br />perform MMIO</div>
+          </div>
+          <pre><code class="language-rust" data-trim>
+const RGB_MMIO_BASE: usize = 0x090d0000;
+const RGB_MMIO_SIZE: usize = 0x1000;
+
+let resource = bindings::request_mem_region(
+    RGB_MMIO_BASE as _, RGB_MMIO_SIZE as _, c_str!("rgb").as_char_ptr());
+let base = bindings::ioremap(RGB_MMIO_BASE as _, RGB_MMIO_SIZE);
+          </code></pre>
+          <aside class="notes">1.5 minutes. A physical address is not a pointer. ioremap creates the architecture-correct kernel mapping. Drop performs iounmap and release_mem_region.</aside>
+        </section>
+
+        <section>
+          <h2>Ordering is part of the device protocol</h2>
+          <pre><code class="language-rust" data-trim data-line-numbers="1-4">
+bindings::writel(red as u32, self.register(RGB_REG_RED));
+bindings::writel(green as u32, self.register(RGB_REG_GREEN));
+bindings::writel(blue as u32, self.register(RGB_REG_BLUE));
+bindings::writel(1, self.register(RGB_REG_APPLY));
+          </code></pre>
+          <div class="three-columns small">
+            <div class="card kernel">volatile I/O helpers</div>
+            <div class="card kernel">aligned offsets</div>
+            <div class="card hardware">APPLY comes last</div>
+          </div>
+          <p class="small">Useful for learning; unsuitable for reusable board support.</p>
+          <aside class="notes">1 minute. MMIO is not ordinary memory. We rely on kernel I/O helpers rather than Rust volatile primitives.</aside>
+        </section>
+
+        <section class="demo">
+          <h2>Demo 3 — The driver reaches QEMU</h2>
+          <pre><code class="language-shell" data-trim>
+make image RGB_DRIVER_STAGE=02-mmio-fixed
+# copy, unload the previous module, then:
+insmod /tmp/rgb-mmio.ko
+echo 00FF00 &gt; /dev/rgb
+          </code></pre>
+          <p><strong>Linux:</strong> <code>wrote MMIO color r=0 g=255 b=0</code></p>
+          <p><strong>QEMU:</strong> <code>rgb-led: apply RGB(0, 255, 0)</code></p>
+          <aside class="notes">
+            DEMO — 1.5 minutes. Recreate /dev/rgb if the dynamically allocated major changed. Keep Linux and QEMU output visible. Fallback: use the two expected trace lines on screen.
+          </aside>
+        </section>
+
+        <section class="section-title">
+          <h2>4 — Let firmware describe the board</h2>
+          <p>Device Tree + platform driver</p>
+        </section>
+
+        <section>
+          <h2>The Device Tree is the hand-off</h2>
+          <pre><code class="language-dts" data-trim>
+rgb-led@90d0000 {
+    compatible = "qemu,rgb-led";
+    reg = &lt;0x0 0x090d0000 0x0 0x100&gt;;
+};
+          </code></pre>
+          <div class="flow small">
+            <div class="card hardware">QEMU emits<br />device node</div>
+            <div class="arrow">→</div>
+            <div class="card kernel">Linux creates<br />platform device</div>
+            <div class="arrow">→</div>
+            <div class="card kernel">compatible match<br />calls <code>probe</code></div>
+          </div>
+          <aside class="notes">1.5 minutes. On physical ARM boards this hand-off often comes from the bootloader and board DTS instead of QEMU.</aside>
+        </section>
+
+        <section>
+          <h2>A Rust platform driver</h2>
+          <pre><code class="language-rust" data-trim data-line-numbers="1-5|7-15">
+kernel::of_device_table!(
+    RGB_OF_TABLE, MODULE_OF_TABLE,
+    &lt;RgbDriver as platform::Driver&gt;::IdInfo,
+    [(of::DeviceId::new(c_str!("qemu,rgb-led")), ())]
+);
+
+impl platform::Driver for RgbDriver {
+    type IdInfo = ();
+    const OF_ID_TABLE: Option&lt;of::IdTable&lt;Self::IdInfo&gt;&gt; =
+        Some(&amp;RGB_OF_TABLE);
+
+    fn probe(pdev: &amp;platform::Device&lt;Core&gt;, _info: Option&lt;&amp;()&gt;)
+        -&gt; Result&lt;Pin&lt;KBox&lt;Self&gt;&gt;&gt; {
+        let hw = RgbDevice::map(pdev)?;
+        // register /dev/rgb ...
+    }
+}
+          </code></pre>
+          <p class="small">The driver asks for resource 0; it no longer knows the physical base.</p>
+          <aside class="notes">1.5 minutes. Highlight matching, probe lifetime and devres-backed mapping. The compatible string is the stable identity.</aside>
+        </section>
+
+        <section class="demo">
+          <h2>Demo 4 — Discovery instead of assumptions</h2>
+          <pre><code class="language-shell" data-trim>
+make image RGB_DRIVER_STAGE=03-device-tree
+insmod /tmp/rgb-dt.ko
+dmesg | tail
+cat /proc/iomem | grep -i rgb
+echo 0000FF &gt; /dev/rgb
+          </code></pre>
+          <p>Expected: <code>platform device matched</code></p>
+          <aside class="notes">
+            DEMO — 1.5 minutes. Show the match message before writing blue. If the module auto-loads from the image, unload it before inserting the copied artifact so that the transition remains explicit.
+          </aside>
+        </section>
+
+        <section class="section-title">
+          <h2>5 — Commands beyond <code>write</code></h2>
+          <p>ioctl, synchronous work, then a workqueue</p>
+        </section>
+
+        <section>
+          <h2>A deliberately small ioctl contract</h2>
+          <div class="columns">
+            <pre><code class="language-rust" data-trim>
+const RGB_IOCTL_CYCLE: u32 =
+    _IO('r' as u32, 0x01);
+
+match cmd {
+    RGB_IOCTL_CYCLE =&gt;
+        hw.cycle_primary_colors(),
+    _ =&gt; Err(ENOTTY),
+}
+            </code></pre>
+            <pre><code class="language-python" data-trim>
+RGB_IOCTL_CYCLE =
+    (ord("r") &lt;&lt; 8) | 0x01
+
+with open("/dev/rgb", "rb+") as dev:
+    fcntl.ioctl(
+        dev.fileno(),
+        RGB_IOCTL_CYCLE,
+        0,
+    )
+            </code></pre>
+          </div>
+          <aside class="notes">1.5 minutes. `_IO` carries no payload here. Unknown commands return ENOTTY. Production ABIs need versioning and much more care.</aside>
+        </section>
+
+        <section>
+          <h2>Stage 04 vs stage 05</h2>
+          <div class="columns left small">
+            <div class="card kernel">
+              <h3>04 — synchronous</h3>
+              <ul>
+                <li>ioctl performs the full cycle</li>
+                <li>caller blocks for ~3 seconds</li>
+                <li>simple lifetime model</li>
+              </ul>
+            </div>
+            <div class="card kernel">
+              <h3>05 — workqueue</h3>
+              <ul>
+                <li>ioctl schedules work and returns</li>
+                <li>kernel worker performs the cycle</li>
+                <li><code>Arc</code> keeps device state alive</li>
+              </ul>
+            </div>
+          </div>
+          <p class="small">Asynchronous software is still running the stepped color sequence.</p>
+          <aside class="notes">1.5 minutes. “Async” here means deferred kernel work, not Rust async/await and not autonomous hardware. The current POC cycles R → G → B; it is a simple stand-in for a fade.</aside>
+        </section>
+
+        <section>
+          <h2>Follow the command through all three worlds</h2>
+          <div class="flow tiny">
+            <div class="card user">Python<br /><code>fcntl.ioctl</code></div>
+            <div class="arrow">→</div>
+            <div class="card kernel">VFS<br /><code>unlocked_ioctl</code></div>
+            <div class="arrow">→</div>
+            <div class="card kernel">workqueue<br /><code>set_color</code></div>
+            <div class="arrow">→</div>
+            <div class="card hardware">MMIO<br />QEMU callbacks</div>
+          </div>
+          <p class="takeaway">One command becomes three register transactions.</p>
+          <aside class="notes">1 minute. This is the architectural payoff: each boundary has a visible contract and observable traces.</aside>
+        </section>
+
+        <section class="demo">
+          <h2>Demo 5 — ioctl end to end</h2>
+          <pre><code class="language-shell" data-trim>
+make image RGB_DRIVER_STAGE=05-ioctl-async
+python3 rgb_ioctl_cycle.py /dev/rgb
+          </code></pre>
+          <div class="three-columns small">
+            <div class="card user">application returns</div>
+            <div class="card kernel">worker logs R → G → B</div>
+            <div class="card hardware">QEMU applies each color</div>
+          </div>
+          <aside class="notes">
+            DEMO — 2 minutes. Copy driver/rgb_ioctl_cycle.py to the guest in advance. Show that the ioctl caller returns while the workqueue continues. Expected driver messages: starting cycle, three colors, finished cycle. Expected QEMU messages: three RGB apply lines.
+          </aside>
+        </section>
+
+        <section class="section-title">
+          <p class="planned">Stage 06 — planned</p>
+          <h2>6 — Let the hardware do the fade</h2>
+          <p>Completion notification through an IRQ</p>
+        </section>
+
+        <section>
+          <h2>Why offload the operation?</h2>
+          <div class="columns left small">
+            <div class="card kernel">
+              <h3>Today</h3>
+              <p>The kernel worker wakes up, writes each color and sleeps.</p>
+            </div>
+            <div class="card hardware">
+              <h3>Target</h3>
+              <p>The driver submits one command. The peripheral advances autonomously.</p>
+            </div>
+          </div>
+          <p class="takeaway">Submit → continue working → handle completion</p>
+          <aside class="notes">1 minute. This is the same motivation behind DMA engines, storage queues and many accelerators.</aside>
+        </section>
+
+        <section>
+          <h2>The return path: an interrupt</h2>
+          <div class="flow tiny">
+            <div class="card user">ioctl<br />start fade</div>
+            <div class="arrow">→</div>
+            <div class="card kernel">driver<br />program command</div>
+            <div class="arrow">→</div>
+            <div class="card hardware">QEMU timer<br />runs fade</div>
+            <div class="arrow">→</div>
+            <div class="card hardware">raise IRQ</div>
+            <div class="arrow">→</div>
+            <div class="card kernel">Rust handler<br />ack + notify</div>
+          </div>
+          <p class="small">The driver stops polling; the device tells us when it is done.</p>
+          <aside class="notes">1.5 minutes. Explain level/edge semantics only after the future hardware contract chooses one. The handler must acknowledge the interrupt source.</aside>
+        </section>
+
+        <section>
+          <h2>Stage 06 implementation contract</h2>
+          <p class="planned">Draft — exact register offsets still to be implemented</p>
+          <div class="three-columns left tiny">
+            <div class="card hardware"><strong>QEMU</strong><br />fade command/state<br />virtual timer<br />IRQ output<br />migration/reset state</div>
+            <div class="card kernel"><strong>Rust driver</strong><br />discover IRQ<br />request handler<br />submit command<br />ack completion<br />safe teardown</div>
+            <div class="card user"><strong>User space</strong><br />trigger fade<br />receive completion<br />handle busy/error<br />observe latency</div>
+          </div>
+          <aside class="notes">1 minute. Do not claim an ABI or offsets yet. This slide is the implementation checklist for the next stage.</aside>
+        </section>
+
+        <section class="demo">
+          <p class="planned">Target demo — not implemented yet</p>
+          <h2>Demo 6 — Autonomous fade + completion IRQ</h2>
+          <ol class="small">
+            <li>User program submits one fade command</li>
+            <li>Driver returns without performing intermediate color writes</li>
+            <li>QEMU executes the fade on its virtual timer</li>
+            <li>QEMU raises the IRQ on completion</li>
+            <li>Rust handler acknowledges it and notifies user space</li>
+          </ol>
+          <p><strong>Acceptance signal:</strong> traces show exactly one complete round trip.</p>
+          <aside class="notes">
+            TARGET DEMO — 2 minutes once stage 06 exists. Until then, present this as the next engineering step and do not simulate output. Completion mechanism for user space will be fixed with the stage 06 implementation.
+          </aside>
+        </section>
+
+        <section>
+          <h2>What changed at each step?</h2>
+          <table class="registers">
+            <thead><tr><th>Stage</th><th>New boundary</th><th>Main lesson</th></tr></thead>
+            <tbody>
+              <tr><td>QEMU</td><td>register contract</td><td>hardware is an interface</td></tr>
+              <tr><td>01</td><td>VFS</td><td>character device lifecycle</td></tr>
+              <tr><td>02</td><td>MMIO</td><td>mapped I/O and ordering</td></tr>
+              <tr><td>03</td><td>Device Tree</td><td>discovery and resources</td></tr>
+              <tr><td>04–05</td><td>ioctl/workqueue</td><td>command ABI and deferred work</td></tr>
+              <tr><td>06</td><td>IRQ</td><td>hardware-driven completion</td></tr>
+            </tbody>
+          </table>
+          <aside class="notes">Conclusion — 1 minute. The RGB result is simple; the reusable knowledge is in the boundaries and lifetimes.</aside>
+        </section>
+
+        <section>
+          <h2>Repository map</h2>
+          <pre><code class="language-text" data-trim>
+device/qemu/          virtual RGB peripheral
+driver/stages/        five reproducible Rust driver stages
+driver/*.py           user-space ioctl client
+integrations/         minimal QEMU and Buildroot patches
+buildroot-external/   kernel configuration and source injection
+slides/               this presentation
+          </code></pre>
+          <p><code>make check</code> boots the VM and verifies the complete write/MMIO path.</p>
+          <aside class="notes">30 seconds. Point attendees to docs/evolution.md and docs/utilisation.md.</aside>
+        </section>
+
+        <section>
+          <h2>Thanks!</h2>
+          <div class="columns">
+            <img src="images/thanks.gif" alt="Thank you" width="95%" />
+            <img src="images/qr_feedback.png" alt="Feedback QR code" width="70%" />
+          </div>
+          <p class="small">Cyril Marin · René Ribaud</p>
+          <aside class="notes">Questions. Confirm the QR destination before the event.</aside>
+        </section>
+      </div>
+    </div>
+
+    <script type="module">
+      import Reveal from "../reveal.js/dist/reveal.esm.js";
+      import Markdown from "../reveal.js/plugin/markdown/markdown.esm.js";
+      import Notes from "../reveal.js/plugin/notes/notes.esm.js";
+      import Highlight from "../reveal.js/plugin/highlight/highlight.esm.js";
+      import Zoom from "../reveal.js/plugin/zoom/zoom.esm.js";
+
+      const deck = new Reveal({
+        plugins: [Markdown, Notes, Highlight, Zoom],
+        controls: true,
+        progress: true,
+        history: true,
+        center: false,
+        width: 960,
+        height: 700,
+        margin: 0.08,
+        minScale: 0.2,
+        maxScale: 1.5,
+        transition: "convex",
+      });
+      deck.initialize();
+    </script>
+  </body>
+</html>

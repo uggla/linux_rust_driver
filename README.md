@@ -48,6 +48,21 @@ make check-stages   # compile les cinq étapes pédagogiques
 Le smoke test charge le module, crée temporairement `/dev/rgb`, écrit du rouge
 et vérifie à la fois les traces Linux et la sortie du périphérique QEMU.
 
+## Présentation Reveal.js
+
+Le draft anglais de la présentation et ses notes de démonstration sont dans
+`slides/`. Il reprend l'habillage Snowcamp du workshop d'origine.
+
+```sh
+make slides         # génère slides/index.html
+make slides-serve   # sert http://localhost:8000 avec reconstruction continue
+make slides-pdf-image
+make slides-pdf     # nécessite le serveur actif dans un autre terminal
+```
+
+Les commandes de slides nécessitent `uv`. La génération PDF nécessite aussi
+Podman et produit `slides/linux_rust_drivers.pdf`.
+
 ## Organisation
 
 - `vendor/` : sous-modules QEMU et Buildroot épinglés ;

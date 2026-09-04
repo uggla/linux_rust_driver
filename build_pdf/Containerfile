@@ -1,0 +1,16 @@
+FROM python:3.12
+
+COPY --from=ghcr.io/astral-sh/uv:latest /uv /bin/uv
+ENV PLAYWRIGHT_BROWSERS_PATH=/playwright-browsers
+
+RUN uv pip install playwright --system \
+    && playwright install chrome \
+    && chmod -Rf 777 "$PLAYWRIGHT_BROWSERS_PATH"
+
+RUN useradd -m presenter
+COPY gen_pdf.py /home/presenter/gen_pdf.py
+RUN chown presenter:presenter /home/presenter/gen_pdf.py
+
+WORKDIR /home/presenter
+USER presenter
+ENTRYPOINT ["python", "gen_pdf.py"]
