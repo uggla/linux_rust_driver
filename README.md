@@ -18,6 +18,7 @@ make run
 ```
 
 La version finale `05-ioctl-async` est construite par défaut. Voir
+le [guide d'utilisation](docs/utilisation.md) pour le déroulé complet et
 [`docs/evolution.md`](docs/evolution.md) pour rejouer les étapes précédentes.
 
 `make run` démarre la VM avec la console série et expose SSH sur le port 2222.
