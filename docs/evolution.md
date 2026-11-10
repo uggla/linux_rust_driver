@@ -22,3 +22,16 @@ make image RGB_DRIVER_STAGE=03-device-tree
 
 Chaque étape utilise son propre répertoire de sortie Buildroot sous `.build/`,
 ce qui évite de mélanger des modules provenant de versions différentes.
+
+## Stage 06 — fondu matériel et IRQ
+
+`06-hw-offloading` ajoute une sixième étape, sélectionnée explicitement :
+
+```sh
+make run RGB_DRIVER_STAGE=06-hw-offloading
+make check-offloading
+```
+
+QEMU réalise le fondu avec un timer virtuel. Le pilote soumet les paramètres,
+puis son handler IRQ threadé acquitte la fin et réveille les appels WAIT.
+Il n'effectue aucune écriture intermédiaire de couleur.

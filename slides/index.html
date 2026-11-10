@@ -34,7 +34,7 @@
       .small { font-size: 0.72em; }
       .tiny { font-size: 0.55em; }
       .muted { color: var(--muted); }
-      .planned { color: #9c4221; font-weight: 700; text-transform: uppercase; }
+      .stage-label { color: #9c4221; font-weight: 700; text-transform: uppercase; }
       .columns { display: grid; grid-template-columns: 1fr 1fr; gap: 28px; align-items: center; }
       .three-columns { display: grid; grid-template-columns: repeat(3, 1fr); gap: 18px; }
       .card { border: 3px solid #ddd; border-radius: 14px; padding: 18px; background: rgba(255,255,255,.6); }
@@ -111,10 +111,10 @@
             <li>Talk to hardware through hard-coded MMIO</li>
             <li>Discover resources through the Device Tree</li>
             <li>Add an ioctl and move work off the caller</li>
-            <li>Target hardware fade completion through an IRQ</li>
+            <li>Offload a hardware fade and receive its completion IRQ</li>
           </ol>
           <p><strong>Explain → inspect code → demonstrate</strong></p>
-          <aside class="notes">Roadmap — 45 seconds. Stages 1–5 work today. The last stage is an explicit design target.</aside>
+          <aside class="notes">Roadmap — 45 seconds. Stages 1–5 build the outbound path. Stage 06 adds autonomous hardware and the return IRQ.</aside>
         </section>
 
         <section class="section-title">
@@ -535,7 +535,7 @@ python3 rgb_ioctl_cycle.py /dev/rgb
         </section>
 
         <section class="section-title">
-          <p class="planned">Stage 06 — planned</p>
+          <p class="stage-label">Stage 06 — hardware offloading</p>
           <h2>6 — Let the hardware do the fade</h2>
           <p>Completion notification through an IRQ</p>
         </section>
@@ -567,37 +567,67 @@ python3 rgb_ioctl_cycle.py /dev/rgb
             <div class="arrow">→</div>
             <div class="card hardware">raise IRQ</div>
             <div class="arrow">→</div>
-            <div class="card kernel">Rust handler<br />ack + notify</div>
+            <div class="card kernel">Rust IRQ thread<br />ack + wake WAIT</div>
           </div>
-          <p class="small">The driver stops polling; the device tells us when it is done.</p>
-          <aside class="notes">1.5 minutes. Explain level/edge semantics only after the future hardware contract chooses one. The handler must acknowledge the interrupt source.</aside>
+          <p class="small">Python sleeps in WAIT; the device signals completion.</p>
+          <aside class="notes">1.5 minutes. A level IRQ remains asserted until acknowledged. The hard IRQ wakes a kernel IRQ thread, which acknowledges the source and wakes WAIT.</aside>
         </section>
 
         <section>
           <h2>Stage 06 implementation contract</h2>
-          <p class="planned">Draft — exact register offsets still to be implemented</p>
+          <p class="stage-label">START → hardware timer → IRQ → WAIT returns</p>
           <div class="three-columns left tiny">
             <div class="card hardware"><strong>QEMU</strong><br />fade command/state<br />virtual timer<br />IRQ output<br />migration/reset state</div>
             <div class="card kernel"><strong>Rust driver</strong><br />discover IRQ<br />request handler<br />submit command<br />ack completion<br />safe teardown</div>
             <div class="card user"><strong>User space</strong><br />trigger fade<br />receive completion<br />handle busy/error<br />observe latency</div>
           </div>
-          <aside class="notes">1 minute. Do not claim an ABI or offsets yet. This slide is the implementation checklist for the next stage.</aside>
+          <aside class="notes">1 minute. START: _IOW(r, 2, 8), target u32 and duration_ms u32. WAIT: _IO(r, 3). One active fade; concurrent START/write returns EBUSY.</aside>
         </section>
 
         <section class="demo">
-          <p class="planned">Target demo — not implemented yet</p>
+          <p class="stage-label">Stage 06 demo</p>
           <h2>Demo 6 — Autonomous fade + completion IRQ</h2>
           <ol class="small">
             <li>User program submits one fade command</li>
             <li>Driver returns without performing intermediate color writes</li>
             <li>QEMU executes the fade on its virtual timer</li>
             <li>QEMU raises the IRQ on completion</li>
-            <li>Rust handler acknowledges it and notifies user space</li>
+            <li>Rust IRQ thread acknowledges it and wakes Python in WAIT</li>
           </ol>
           <p><strong>Acceptance signal:</strong> traces show exactly one complete round trip.</p>
           <aside class="notes">
-            TARGET DEMO — 2 minutes once stage 06 exists. Until then, present this as the next engineering step and do not simulate output. Completion mechanism for user space will be fixed with the stage 06 implementation.
+            DEMO — Run the stage-06 image and copy rgb_ioctl_fade.py into the guest. Record /proc/interrupts before and after. Observe the PID sleeping during a 10-second fade. IRQ log and counter prove delivery; sleeping alone does not.
           </aside>
+        </section>
+
+        <section>
+          <h2>Is Python really sleeping?</h2>
+          <pre><code class="language-shell" data-trim>
+# Guest terminal 1: note the printed PID
+python3 /tmp/rgb_ioctl_fade.py --duration-ms 10000
+# Guest terminal 2: replace 123 with that PID
+grep '^State:' /proc/123/status
+# State: S (sleeping)
+grep rgb /proc/interrupts
+          </code></pre>
+          <p class="small">Record the IRQ counter before and after: one fade, one interrupt.</p>
+          <aside class="notes">Show START returning quickly, WAIT sleeping, then the IRQ counter increment. Defaults are red, 3000 ms. Use 10000 ms to allow time to inspect the process.</aside>
+        </section>
+
+        <section>
+          <h2>Sleeping alone does not prove an IRQ</h2>
+          <table class="registers">
+            <tr><th>Stage</th><th>Who executes?</th><th>Who sleeps?</th></tr>
+            <tr><td>04</td><td>ioctl callback</td><td>Python thread during software delays</td></tr>
+            <tr><td>05</td><td>kernel worker</td><td>worker between color writes</td></tr>
+            <tr><td>06</td><td>QEMU timer</td><td>Python thread waiting for completion</td></tr>
+          </table>
+          <pre><code class="language-text" data-trim>
+QEMU: fade complete, raising IRQ
+Rust: completion IRQ received, acknowledging generation=1
+Python: WAIT returned — fade completed
+          </code></pre>
+          <aside class="notes">The hardware raises the line; Linux enters the hard handler and wakes the IRQ thread; the IRQ thread checks and acknowledges the source then notifies WAIT. Python becomes runnable and resumes when scheduled.</aside>
         </section>
 
         <section>
@@ -620,7 +650,7 @@ python3 rgb_ioctl_cycle.py /dev/rgb
           <h2>Repository map</h2>
           <pre><code class="language-text" data-trim>
 device/qemu/          virtual RGB peripheral
-driver/stages/        five reproducible Rust driver stages
+driver/stages/        six reproducible Rust driver stages
 driver/*.py           user-space ioctl client
 integrations/         minimal QEMU and Buildroot patches
 buildroot-external/   kernel configuration and source injection

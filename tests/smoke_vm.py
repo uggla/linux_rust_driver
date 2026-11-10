@@ -4,6 +4,7 @@
 from __future__ import annotations
 
 import os
+import base64
 import select
 import subprocess
 import sys
@@ -52,10 +53,10 @@ def send(process: subprocess.Popen[bytes], command: str) -> None:
 
 
 def main() -> int:
-    if len(sys.argv) != 4:
-        raise SystemExit("usage: smoke_vm.py QEMU KERNEL ROOTFS")
+    if len(sys.argv) not in (4, 5):
+        raise SystemExit("usage: smoke_vm.py QEMU KERNEL ROOTFS [GUEST_TEST]")
 
-    qemu, kernel, rootfs = map(Path, sys.argv[1:])
+    qemu, kernel, rootfs = map(Path, sys.argv[1:4])
     for artifact in (qemu, kernel, rootfs):
         if not artifact.is_file():
             raise SystemExit(f"missing build artifact: {artifact}")
@@ -129,6 +130,13 @@ def main() -> int:
         missing = [item for item in required if item not in output]
         if missing:
             fail(f"missing expected log entries: {missing!r}", output)
+        if len(sys.argv) == 5:
+            payload = base64.b64encode(Path(sys.argv[4]).read_bytes()).decode()
+            send(process, ": > /tmp/rgb-test.b64")
+            for offset in range(0, len(payload), 512):
+                send(process, "echo '" + payload[offset:offset + 512] + "' >> /tmp/rgb-test.b64")
+            send(process, "base64 -d /tmp/rgb-test.b64 > /tmp/rgb-test.py; python3 /tmp/rgb-test.py; rc=$?; echo __RGB_EXTRA_${rc}__")
+            wait_for(process, output, b"__RGB_EXTRA_0__", 150)
         print("RGB VM smoke test: OK")
         return 0
     finally:

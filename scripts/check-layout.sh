@@ -13,7 +13,8 @@ for stage in \
 	02-mmio-fixed \
 	03-device-tree \
 	04-ioctl-sync \
-	05-ioctl-async
+	05-ioctl-async \
+	06-hw-offloading
 do
 	test -s "$root/driver/stages/$stage/rgb.rs"
 done

@@ -5,11 +5,11 @@ Subject: [PATCH] hw/arm: wire the RGB LED device into virt
 
 ---
  hw/arm/Kconfig        |  1 +
- hw/arm/virt.c         | 19 +++++++++++++++++++
+ hw/arm/virt.c         | 21 +++++++++++++++++++++
  hw/misc/Kconfig       |  3 +++
  hw/misc/meson.build   |  1 +
  include/hw/arm/virt.h |  1 +
- 5 files changed, 25 insertions(+)
+ 5 files changed, 27 insertions(+)
 
 diff --git a/hw/arm/Kconfig b/hw/arm/Kconfig
 index 500bfdfe2a..73dfc59260 100644
@@ -35,7 +35,7 @@ index d8d27f2ef6..94023e5d0b 100644
      [VIRT_MMIO] =               { 0x0a000000, 0x00000200 },
      /* ...repeating for a total of NUM_VIRTIO_TRANSPORTS, each of that size */
      [VIRT_PLATFORM_BUS] =       { 0x0c000000, 0x02000000 },
-@@ -1572,6 +1573,23 @@ static void create_rtc(const VirtMachineState *vms)
+@@ -1572,6 +1573,25 @@ static void create_rtc(const VirtMachineState *vms)
      g_free(nodename);
  }
  
@@ -46,20 +46,22 @@ index d8d27f2ef6..94023e5d0b 100644
 +    hwaddr size = vms->memmap[VIRT_RGB_LED].size;
 +    char *nodename;
 +
-+    sysbus_create_simple("rgb-led", base, NULL);
++    sysbus_create_simple("rgb-led", base, qdev_get_gpio_in(vms->gic, 10));
 +
 +    nodename = g_strdup_printf("/rgb-led@%" PRIx64, base);
 +    qemu_fdt_add_subnode(ms->fdt, nodename);
 +    qemu_fdt_setprop_string(ms->fdt, nodename, "compatible", "qemu,rgb-led");
 +    qemu_fdt_setprop_sized_cells(ms->fdt, nodename, "reg",
 +                                 2, base, 2, size);
++    qemu_fdt_setprop_cells(ms->fdt, nodename, "interrupts",
++                           GIC_FDT_IRQ_TYPE_SPI, 10, GIC_FDT_IRQ_FLAGS_LEVEL_HI);
 +    g_free(nodename);
 +}
 +
  static DeviceState *gpio_key_dev;
  static void virt_powerdown_req(Notifier *n, void *opaque)
  {
-@@ -3182,6 +3200,7 @@ static void machvirt_init(MachineState *machine)
+@@ -3182,6 +3202,7 @@ static void machvirt_init(MachineState *machine)
      vms->highmem_ecam &= (!firmware_loaded || aarch64);
  
      create_rtc(vms);

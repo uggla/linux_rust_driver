@@ -12,7 +12,7 @@ DRIVER_SOURCE := $(ROOT)/driver/stages/$(RGB_DRIVER_STAGE)/rgb.rs
 LINUX_SOURCE := $(BUILDROOT_OUTPUT)/build/linux-6.18.7
 JOBS ?= $(shell nproc)
 
-STAGES := 01-character-device 02-mmio-fixed 03-device-tree 04-ioctl-sync 05-ioctl-async
+STAGES := 01-character-device 02-mmio-fixed 03-device-tree 04-ioctl-sync 05-ioctl-async 06-hw-offloading
 
 .PHONY: all setup check-layout prepare-qemu prepare-buildroot qemu image run smoke check check-stages slides slides-serve slides-pdf slides-pdf-image clean
 
@@ -103,3 +103,12 @@ slides-pdf-image:
 clean:
 	@test "$(BUILD)" = "$(ROOT)/.build"
 	rm -rf "$(BUILD)"
+
+.PHONY: check-offloading
+check-offloading:
+	$(MAKE) qemu image RGB_DRIVER_STAGE=06-hw-offloading
+	python3 $(ROOT)/tests/qemu_fade.py $(QEMU_BUILD)/qemu-system-aarch64
+	python3 $(ROOT)/tests/smoke_vm.py $(QEMU_BUILD)/qemu-system-aarch64 \
+		$(BUILD)/buildroot-output/06-hw-offloading/images/Image \
+		$(BUILD)/buildroot-output/06-hw-offloading/images/rootfs.ext4 \
+		$(ROOT)/tests/guest_fade.py

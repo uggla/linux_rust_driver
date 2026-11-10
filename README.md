@@ -42,7 +42,7 @@ python3 rgb_ioctl_cycle.py /dev/rgb
 
 ```sh
 make check          # build final et smoke test write/MMIO dans la VM
-make check-stages   # compile les cinq étapes pédagogiques
+make check-stages   # compile les six étapes pédagogiques
 ```
 
 Le smoke test charge le module, crée temporairement `/dev/rgb`, écrit du rouge
@@ -67,10 +67,15 @@ Podman et produit `slides/linux_rust_drivers.pdf`.
 
 - `vendor/` : sous-modules QEMU et Buildroot épinglés ;
 - `device/qemu/` : source canonique du périphérique virtuel ;
-- `driver/stages/` : cinq versions autonomes du driver Rust ;
+- `driver/stages/` : six versions autonomes du driver Rust ;
 - `integrations/` : patches minimaux appliqués aux clones de build ;
 - `buildroot-external/` : defconfig, configuration noyau, patches et hook
   d'injection du stage choisi.
 
 Les scripts préparent des clones locaux sous `.build/src/`. Ils ne patchent
 jamais directement les sous-modules.
+
+L’étape `06-hw-offloading` ajoute un fondu autonome dans QEMU et une IRQ de
+fin. Son client est `driver/rgb_ioctl_fade.py` (rouge, 3 secondes par défaut).
+Voir le guide d’utilisation pour observer Python endormi et le compteur IRQ.
+Validation dédiée : `make check-offloading`.
