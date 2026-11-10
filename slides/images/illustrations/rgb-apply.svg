@@ -1,0 +1,14 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 920 245" role="img" aria-labelledby="title desc">
+  <title id="title">Prepare the RGB channels, then apply the color</title>
+  <desc id="desc">Prepare the RGB channels, then apply the color</desc>
+  <defs>
+    <marker id="arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0L10 5L0 10Z" fill="#29343b"/></marker>
+    <linearGradient id="fade"><stop stop-color="#ed3434"/><stop offset="1" stop-color="#111820"/></linearGradient>
+  </defs>
+  <g font-family="Arial, Helvetica, sans-serif" fill="#29343b" stroke-linecap="round" stroke-linejoin="round"><rect x="34" y="27" width="230" height="50" rx="9" fill="#fbfaf3" stroke="#d94a4a" stroke-width="3" /><text x="61" y="60" text-anchor="middle" fill="#d94a4a" font-size="25" font-weight="bold">R</text><text x="218" y="60" text-anchor="end" fill="#29343b" font-size="25" font-weight="bold">255</text><rect x="34" y="91" width="230" height="50" rx="9" fill="#fbfaf3" stroke="#32875e" stroke-width="3" /><text x="61" y="124" text-anchor="middle" fill="#32875e" font-size="25" font-weight="bold">G</text><text x="218" y="124" text-anchor="end" fill="#29343b" font-size="25" font-weight="bold">0</text><rect x="34" y="155" width="230" height="50" rx="9" fill="#fbfaf3" stroke="#397dbb" stroke-width="3" /><text x="61" y="188" text-anchor="middle" fill="#397dbb" font-size="25" font-weight="bold">B</text><text x="218" y="188" text-anchor="end" fill="#29343b" font-size="25" font-weight="bold">0</text><path d="M290 114L380 114" fill="none" stroke="#29343b" stroke-width="3" marker-end="url(#arrow)" /><rect x="403" y="71" width="190" height="86" rx="15" fill="#f8e7d9" stroke="#c05621" stroke-width="3" /><text x="498" y="122" text-anchor="middle" fill="#c05621" font-size="28" font-weight="bold">APPLY = 1</text><path d="M620 114L714 114" fill="none" stroke="#29343b" stroke-width="3" marker-end="url(#arrow)" /><g transform="translate(804 87) scale(1.35)">
+      <path d="M-12 27V61M12 27V53" stroke="#78848c" stroke-width="5"/>
+      <path d="M-25 24V-6A25 25 0 0 1 25-6V24Z" fill="#ed3434" stroke="#29343b" stroke-width="3"/>
+      <path d="M-12-6Q-12-18 0-18" stroke="#ffffffb0" stroke-width="6" fill="none"/>
+      <rect x="-30" y="23" width="60" height="9" rx="3" fill="#ed3434" stroke="#29343b" stroke-width="3"/>
+    </g><text x="149" y="237" text-anchor="middle" fill="#29343b" font-size="21" font-weight="normal">Prepare</text><text x="498" y="237" text-anchor="middle" fill="#29343b" font-size="21" font-weight="normal">Commit</text><text x="804" y="237" text-anchor="middle" fill="#29343b" font-size="21" font-weight="normal">Observe</text></g>
+</svg>

@@ -1,0 +1,9 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 108" role="img" aria-labelledby="title desc">
+  <title id="title">Kernel driver module</title>
+  <desc id="desc">Kernel driver module</desc>
+  <defs>
+    <marker id="arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0L10 5L0 10Z" fill="#29343b"/></marker>
+    <linearGradient id="fade"><stop stop-color="#ed3434"/><stop offset="1" stop-color="#111820"/></linearGradient>
+  </defs>
+  <g font-family="Arial, Helvetica, sans-serif" fill="#29343b" stroke-linecap="round" stroke-linejoin="round"><path d="M40.0 4V14M40.0 94V104M14 30.0H24M104 30.0H114" stroke="#805ad5" stroke-width="5"/><path d="M56.0 4V14M56.0 94V104M14 46.0H24M104 46.0H114" stroke="#805ad5" stroke-width="5"/><path d="M72.0 4V14M72.0 94V104M14 62.0H24M104 62.0H114" stroke="#805ad5" stroke-width="5"/><path d="M88.0 4V14M88.0 94V104M14 78.0H24M104 78.0H114" stroke="#805ad5" stroke-width="5"/><rect x="24" y="14" width="80" height="80" rx="10" fill="#fbfaf3" stroke="#805ad5" stroke-width="3" /><rect x="34.4" y="24.4" width="59.2" height="59.2" rx="7" fill="#805ad5" stroke="#805ad5" stroke-width="3" /><text x="64.0" y="61.199999999999996" text-anchor="middle" fill="white" font-size="19.2" font-weight="bold">DRV</text></g>
+</svg>

@@ -1,0 +1,9 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 108" role="img" aria-labelledby="title desc">
+  <title id="title">Kernel workqueue job</title>
+  <desc id="desc">Kernel workqueue job</desc>
+  <defs>
+    <marker id="arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0L10 5L0 10Z" fill="#29343b"/></marker>
+    <linearGradient id="fade"><stop stop-color="#ed3434"/><stop offset="1" stop-color="#111820"/></linearGradient>
+  </defs>
+  <g font-family="Arial, Helvetica, sans-serif" fill="#29343b" stroke-linecap="round" stroke-linejoin="round"><rect x="7" y="15" width="55" height="73" rx="7" fill="#eff3fb" stroke="#805ad5" stroke-width="3" /><path d="M18 32H49M18 49H43M18 66H36" stroke="#805ad5" stroke-width="4"/><circle cx="87" cy="64" r="29" fill="#f3eefb" stroke="#805ad5" stroke-width="4"/><path d="M87 44V64L101 71" fill="none" stroke="#805ad5" stroke-width="4"/></g>
+</svg>

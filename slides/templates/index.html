@@ -12,67 +12,84 @@
     <link rel="stylesheet" href="css/stackoverflow-light.css" />
 
     <style>
-      :root {
-        --user: #2b6cb0;
-        --kernel: #805ad5;
-        --hardware: #c05621;
-        --muted: #5f6368;
-      }
-      .reveal {
-        font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;
-        font-size: 36px;
-      }
-      .reveal h1 { font-size: 2em; }
-      .reveal h2 { font-size: 1.45em; margin-top: 20px; }
-      .reveal h3 { font-size: 1.2em; }
-      .reveal ul { margin: 0; }
-      .reveal li { margin: 0.28em 0; }
-      .reveal pre { width: 100%; font-size: 17px; }
-      .reveal pre code { max-height: 510px; }
-      .reveal section img { border: 0; box-shadow: none; background: transparent; }
-      .left { text-align: left; }
-      .small { font-size: 0.72em; }
-      .tiny { font-size: 0.55em; }
-      .muted { color: var(--muted); }
-      .stage-label { color: #9c4221; font-weight: 700; text-transform: uppercase; }
-      .columns { display: grid; grid-template-columns: 1fr 1fr; gap: 28px; align-items: center; }
-      .three-columns { display: grid; grid-template-columns: repeat(3, 1fr); gap: 18px; }
-      .card { border: 3px solid #ddd; border-radius: 14px; padding: 18px; background: rgba(255,255,255,.6); }
-      .user { border-color: var(--user); }
-      .kernel { border-color: var(--kernel); }
-      .hardware { border-color: var(--hardware); }
-      .flow { display: flex; align-items: stretch; justify-content: center; gap: 10px; }
-      .flow .card { flex: 1; font-size: .72em; }
-      .arrow { align-self: center; font-size: 1.4em; }
-      .registers { margin: 0 auto; font-size: .7em; }
-      .registers th, .registers td { padding: .25em .7em; }
-      .section-title h2 { margin-top: 170px; font-size: 1.8em; }
-      .demo { border-left: 10px solid #2f855a; padding-left: 24px; text-align: left; }
-      .demo h2 { color: #276749; }
-      .bio { font-size: .65em; text-align: left; }
-      .bio-image { max-height: 390px; }
-      .takeaway { font-size: 1.15em; margin-top: 90px; }
-      code.inline { color: #7b341e; background: #fffaf0; padding: 0 .2em; }
+      :root { --user:#2b6cb0; --kernel:#805ad5; --hardware:#c05621; }
+      .reveal { font-family:Arial,Helvetica,sans-serif; font-size:32px; color:#25282c; }
+      .reveal h1 { font-size:1.85em; line-height:1.14; }
+      .reveal h2 { font-size:1.35em; line-height:1.2; margin:16px 0 30px; text-transform:none; }
+      .reveal h3 { font-size:1em; text-transform:none; }
+      .reveal p { line-height:1.35; }
+      .reveal li { margin:.45em 0; }
+      .reveal pre { width:100%; font-size:21px; line-height:1.4; box-shadow:none; }
+      .reveal pre code { padding:20px; max-height:400px; }
+      .reveal section img { border:0; box-shadow:none; background:transparent; }
+      .reveal table { font-size:.77em; }
+      .reveal th,.reveal td { padding:.35em .55em; }
+      .eyebrow { font-size:.54em; text-transform:uppercase; letter-spacing:.12em; color:#666; margin:0 0 10px; }
+      .route { display:flex; gap:8px; margin:0 0 14px; font-size:.48em; }
+      .route span { padding:5px 14px; border-bottom:4px solid #ccc; opacity:.48; }
+      .route .user { border-color:var(--user); } .route .kernel { border-color:var(--kernel); }
+      .route .hardware { border-color:var(--hardware); } .route .active { opacity:1; font-weight:bold; }
+      .flow { display:flex; gap:14px; align-items:center; justify-content:center; margin:40px 0; }
+      .card { flex:1; padding:22px 14px; border:3px solid #b7b7b7; border-radius:12px; background:#ffffff70; font-size:.8em; }
+      .card.user { border-color:var(--user); } .card.kernel { border-color:var(--kernel); } .card.hardware { border-color:var(--hardware); }
+      .arrow { font-size:1.1em; flex:none; }
+      .big { font-size:1.5em; margin:50px 0 35px; }
+      .muted { color:#656565; font-size:.7em; }
+      .takeaway { border-top:2px solid #aaa; padding-top:22px; margin-top:35px; }
+      .snippet { font-size:.52em; color:#656565; text-align:left; margin-top:-18px; }
+      .reveal .slides section.demo { border-left:8px solid #2f855a; padding-left:24px !important; box-sizing:border-box; }
+      .demo h2 { color:#276749; }
+      .demo .flow { margin:24px 0; }
+      .columns { display:grid; grid-template-columns:1fr 1fr; gap:26px; align-items:center; }
+      .bio { font-size:.65em; text-align:left; }
+      .bio-image { height:180px; }
+      .led { width:130px; height:130px; border-radius:50%; background:#e62020; border:3px solid #777; margin:30px auto; }
+      .led.black { background:#000; }
+      .link { font-size:.65em; }
+      .book-columns { display:grid; grid-template-columns:280px 1fr; gap:40px; align-items:center; }
+      .book-columns > div:last-child { text-align:left; font-size:.85em; }
+      .reveal .book-cover { max-height:310px; width:auto; margin:10px 0; }
+      .source-credit { font-size:.45em; line-height:1.4; }
+      .reveal .floppy-video { display:block; width:800px; max-height:360px; margin:15px auto; object-fit:contain; }
+      .closing-links { display:flex; justify-content:space-around; gap:30px; align-items:flex-start; margin-top:28px; }
+      .qr-placeholder { width:170px; height:170px; box-sizing:border-box; border:3px dashed #888; display:grid; place-content:center; margin:20px auto; font-size:.6em; color:#656565; }
+
+      .reveal .concept-icon { display:block; width:110px; height:92px; margin:0 auto 12px; object-fit:contain; }
+      .flow .card { min-width:0; }
+      .reveal .visual-diagram { display:block; width:100%; max-height:310px; margin:28px auto 20px; object-fit:contain; }
+      .illustrated-columns { display:grid; grid-template-columns:210px 1fr; gap:42px; align-items:center; text-align:left; }
+      .illustrated-columns p { font-size:.88em; }
+      .reveal .project-portrait { display:block; width:190px; height:210px; margin:15px auto; object-fit:contain; }
+      .reveal .project-banner { display:block; height:90px; width:auto; margin:0 auto 15px; }
+      .compact-flow { margin:15px 0 25px; }
+      .compact-flow .concept-icon { height:64px; width:80px; }
+
+      .vm-launch h2 { margin-bottom:16px; }
+      .vm-launch pre { font-size:17px; line-height:1.28; margin:12px auto; }
+      .vm-launch pre code { padding:12px; }
+      .reveal .vm-launch .board-overview { height:175px; margin:12px auto; }
+      .vm-launch .source-credit { margin:10px 0; }
     </style>
   </head>
 
   <body>
     <div class="reveal">
       <div class="slides">
-        <section>
+        <section data-duration="15" data-stage="intro" data-speaker="René">
           <h1>User Space, Kernel, Hardware</h1>
-          <h2>Exploring Linux Drivers with Rust</h2>
-          <img src="images/snowcamp_logo.png" alt="Snowcamp" width="24%" />
-          <p>Cyril Marin &amp; René Ribaud</p>
-          <aside class="notes">Opening — 30 seconds. This is a guided trip through three execution worlds, using one deliberately small RGB device.</aside>
+          <h3>Exploring Linux Drivers with Rust</h3><img src="images/snowcamp_logo.png" alt="Snowcamp" width="170"><p>Cyril Marin &amp; René Ribaud</p>
+          <aside class="notes"><h3>Run of show — presenter notes only</h3><p>Audience: knows what Rust is, concepts not assumed; light Linux knowledge. English slides. 42 minutes prepared + 3 minutes margin; Q&amp;A after 45. Approximate lead time: René 25:30 / Cyril 16:30, demos included. Rehearsal required: these are targets, not measured delivery times.</p><table><tr><th>Part</th><th>Total</th><th>Demo</th><th>René</th><th>Cyril</th></tr><tr><td>Introduction</td><td>06:30</td><td>—</td><td>05:00</td><td>01:30</td></tr><tr><td>QEMU</td><td>05:00</td><td>01:30</td><td>02:45</td><td>02:15</td></tr><tr><td>01</td><td>06:00</td><td>02:00</td><td>03:30</td><td>02:30</td></tr><tr><td>02</td><td>04:00</td><td>01:30</td><td>02:30</td><td>01:30</td></tr><tr><td>03</td><td>03:00</td><td>01:00</td><td>01:45</td><td>01:15</td></tr><tr><td>04</td><td>04:00</td><td>01:30</td><td>02:30</td><td>01:30</td></tr><tr><td>05</td><td>03:00</td><td>01:00</td><td>01:30</td><td>01:30</td></tr><tr><td>06</td><td>09:00</td><td>03:30</td><td>04:45</td><td>04:15</td></tr><tr><td>Conclusion</td><td>01:30</td><td>—</td><td>01:15</td><td>00:15</td></tr><tr><td>Total</td><td>42:00</td><td>12:00</td><td>25:30</td><td>16:30</td></tr></table><p>PRE-FLIGHT: build all stages before the talk. Boot make run RGB_DRIVER_STAGE=01-character-device. Host: uv run tools/rgb_viewer.py. Open a second guest terminal via ssh -p 2222 root@localhost (set password beforehand). Do not load rgb or create its node until stage 01. Copy each built module to /tmp/rgb-01.ko … /tmp/rgb-06.ko and both driver Python clients to /tmp. Source pattern: .build/buildroot-output/STAGE/build/linux-6.18.7/samples/rust/rgb.ko. Use scp -O -P 2222 for Dropbear. Keep this VM for every stage. No builds during the talk. Wait for workers to finish and close clients before rmmod. Stage 03 and 05 are optional cuts only after rehearsal; cut their whole blocks and use the transition written in their notes. Demos have explicit stop times and fallback observations; no recordings are assumed available.</p><p>[RENÉ] 15 seconds · 00:00–00:15 cumulative.</p><p>Welcome. Promise one complete trip from a program to hardware and back.</p></aside>
         </section>
 
-        <section data-background="images/snowcamp_sponsors.png" data-background-size="cover">
-          <aside class="notes">Sponsors — 15 seconds.</aside>
+        <section data-duration="15" data-stage="intro" data-speaker="René" data-background="images/snowcamp_sponsors.png" data-background-size="cover">
+
+
+          <aside class="notes"><p>[RENÉ] 15 seconds · 00:15–00:30 cumulative.</p><p>Acknowledge sponsors briefly; do not read every logo.</p></aside>
         </section>
 
-        <section>
+        <section data-duration="45" data-stage="intro" data-speaker="Both">
           <h2>Who are we?</h2>
+
           <div class="columns">
             <div>
               <img class="bio-image" src="images/cyril.png" alt="Cyril Marin" />
@@ -87,594 +104,438 @@
               </div>
             </div>
           </div>
-          <aside class="notes">Speakers — 45 seconds. Keep the biographies short; the device is the third speaker.</aside>
+
+          <aside class="notes"><p>[BOTH] 45 seconds · 00:30–01:15 cumulative.</p><p>[RENÉ — 30s] Brief introduction. [CYRIL — 15s] Introduce yourself in your own words. [PASSAGE] René takes the personal story.</p></aside>
         </section>
 
-        <section>
+        <section data-duration="45" data-stage="intro" data-speaker="René">
+          <h2>Software can move something.</h2>
+          <p>A motorized Mac disk drive.</p>
+          <video class="floppy-video" src="videos/mac-floppy-ejection.mp4" aria-label="A Macintosh ejects a floppy disk" controls muted loop playsinline preload="metadata" data-autoplay></video>
+          <p>As a child, this blew my mind. <span role="img" aria-label="Mind blown">🤯</span></p>
+          <p class="source-credit"><a href="https://www.youtube.com/watch?v=JPMvErNcoGA">Macintosh SE/30 Ejecting a Floppy — Gregory Pushins</a> · final 5 seconds</p>
+          <aside class="notes"><p>[RENÉ] 45 seconds · 01:15–02:00 cumulative.</p><p>Personal story to elaborate with René: that fascination started when I was a child. Keep one concrete childhood memory. Do not invent a Mac model, year or extra anecdote: the SE/30 in this video illustrates the mechanism and does not identify René’s childhood Mac. The local clip loops silently on entering the slide and pauses on leaving. It contains the last 5 seconds of the video stream from Gregory Pushins, “Macintosh SE/30 Ejecting a Floppy”: https://www.youtube.com/watch?v=JPMvErNcoGA, retrieved 2026-11-10. Trimmed from the end of the video stream, audio removed, encoded as H.264 MP4 for playback without a network connection. Source attribution remains visible below the clip. [PASSAGE] Cyril: how did this become a talk?</p></aside>
+        </section>
+
+        <section data-duration="45" data-stage="intro" data-speaker="Cyril">
+          <h2>Looking for something to control</h2>
+          <div class="flow"><div class="card hardware"><img class="concept-icon" src="images/illustrations/laptop.svg" alt="">Lenovo LED<br><small>proprietary / firmware barrier</small></div><span class="arrow">→</span><div class="card hardware"><img class="concept-icon" src="images/illustrations/led.svg" alt="">A simple LED<br><small>driver already exists</small></div><span class="arrow">→</span><div class="card hardware"><img class="concept-icon" src="images/illustrations/keyboard.svg" alt="">Keyboard LED<br><small>driver already exists</small></div></div>
+          <aside class="notes"><p>[CYRIL] 45 seconds · 02:00–02:45 cumulative.</p><p>Suggested speaking slot: tell this exploration in your own words with René; do not attribute experiments you did not do. The repeated discovery is that Linux already has drivers for these ideas. [PASSAGE] René continues the search.</p></aside>
+        </section>
+
+        <section data-duration="30" data-stage="intro" data-speaker="René">
+          <h2>Then we changed the question</h2>
+          <div class="flow"><div class="card hardware"><img class="concept-icon" src="images/illustrations/board.svg" alt="">Raspberry Pi GPIO<br><small>driver already exists</small></div><span class="arrow">→</span><div class="card kernel"><img class="concept-icon" src="images/illustrations/cpu.svg" alt="">ARM gives us an idea</div><span class="arrow">→</span><div class="card hardware"><img class="concept-icon" src="images/illustrations/led.svg" alt="">Build our own peripheral</div></div>
+          <aside class="notes"><p>[RENÉ] 30 seconds · 02:45–03:15 cumulative.</p><p>GPIO suggests ARM and designing a device ourselves. This leads to the next question: can we build that hardware in software? The following slide introduces QEMU. No need to claim that real LEDs cannot be controlled.</p></aside>
+        </section>
+
+        <section data-duration="45" data-stage="intro" data-speaker="René">
+          <h2>QEMU can emulate our hardware</h2>
+          <div class="illustrated-columns"><img class="project-portrait" src="images/qemu-logo.svg" alt="QEMU mascot"><div><p>A fantastic project: CPUs, boards and peripherals in software.</p><p>The user experience can be rough.</p><p><strong>3.5 million lines</strong> can feel intimidating.</p></div></div><p class="source-credit">3,545,344 text lines · QEMU revision 8f1d3b586f<br>Includes comments, blank lines, documentation and tests.</p>
+          <aside class="notes"><p>[RENÉ] 45 seconds · 03:15–04:00 cumulative.</p><p>After the Raspberry Pi / ARM idea, introduce QEMU as the way to implement our own peripheral and run a real guest Linux driver against it. The comments about UX and intimidation are our experience, not a benchmark. We only need one small device model. SIZE CHECK (2026-11-10): QEMU submodule 8f1d3b586f1265023f75ea9c227c35d463321aef has 3,545,344 physical lines across 10,826 tracked UTF-8 text files; includes comments, blank lines, docs and tests, excludes binaries, symlinks and nested submodule contents. Count files from git ls-files -z, read UTF-8 files and sum len(bytes.splitlines()). This is a text-line count, not SLOC; 20 million was not substantiated. Upstream also stresses scope-dependent totals: <a href="https://www.qemu.org/2026/09/23/bugs/">QEMU, Bugpocalypse (2026-09-23)</a> reports 5–11.5 million depending on counting. These are different scopes, not directly comparable figures. [PASSAGE] René introduces the learning resources before following one command through the three worlds.</p><p>Image: “Kew the Angry Emu”, Benoît Canet / QEMU Community, <a href="https://creativecommons.org/licenses/by/3.0/">CC BY 3.0</a>. Unmodified copy of vendor/qemu/ui/icons/qemu.svg; original attribution and license metadata retained in the SVG.</p></aside>
+        </section>
+
+        <section data-duration="30" data-stage="intro" data-speaker="René">
+          <h2>Learning drivers is more approachable today</h2>
+          <div class="book-columns"><div><img class="book-cover" src="images/linux-device-drivers-3.jpg" alt="Cover of Linux Device Drivers, third edition, by Jonathan Corbet, Alessandro Rubini and Greg Kroah-Hartman"><p class="source-credit">O’Reilly · Corbet, Rubini &amp; Kroah-Hartman<br><a href="https://lwn.net/Kernel/LDD3/">Linux Device Drivers, 3rd edition</a></p></div><div><p>The book explains the foundations.</p><p>LLMs help us explore unfamiliar code and APIs.</p><p>We can ask, experiment and verify in the VM.</p></div></div>
+          <aside class="notes"><p>[RENÉ] 30 seconds · 04:00–04:30 cumulative.</p><p>Introduce Linux Device Drivers, third edition, as the classic reference for the driver concepts. The book targets Linux 2.6.10 and C, so use it for the model, not as the current Rust API reference. Today LLMs make entry easier by explaining code, tracing calls, helping read unfamiliar APIs and interpreting build errors. Work with the sources for our pinned kernel, then compile and run the VM to check an explanation. Suggested wording, not an invented claim about when either speaker read the book. Book and authors: <a href="https://lwn.net/Kernel/LDD3/">LDD3 website</a>. Cover artwork: O’Reilly Media, obtained from the <a href="https://books.apple.com/us/book/linux-device-drivers/id396889579">Apple Books listing</a> (https://is1-ssl.mzstatic.com/image/thumb/Publication/40/5a/36/mzi.hihqvhaa.jpg/600x600wz.jpg), downloaded 2026-11-10, unmodified. [PASSAGE] René returns to the application / kernel / hardware journey.</p></aside>
+        </section>
+
+        <section data-duration="45" data-stage="intro" data-speaker="René">
           <h2>One command, three worlds</h2>
-          <div class="flow">
-            <div class="card user"><strong>User space</strong><br /><code>echo FF0000</code></div>
-            <div class="arrow">→</div>
-            <div class="card kernel"><strong>Linux kernel</strong><br />Rust driver</div>
-            <div class="arrow">→</div>
-            <div class="card hardware"><strong>Hardware</strong><br />QEMU RGB device</div>
-          </div>
-          <p class="takeaway">We will build every boundary ourselves.</p>
-          <aside class="notes">Goal — 1 minute. The small scope makes the interfaces visible: syscall, VFS, MMIO and later an interrupt.</aside>
+          <div class="flow"><div class="card user"><img class="concept-icon" src="images/illustrations/terminal.svg" alt="">Application<br><code>echo FF0000</code></div><span class="arrow">→</span><div class="card kernel"><img class="concept-icon" src="images/illustrations/module.svg" alt="">Linux<br>our Rust driver</div><span class="arrow">→</span><div class="card hardware"><img class="concept-icon" src="images/illustrations/led.svg" alt="">QEMU<br>our RGB device</div></div><p class="takeaway">A driver translates software requests into hardware operations.</p>
+          <aside class="notes"><p>[RENÉ] 45 seconds · 04:30–05:15 cumulative.</p><p>Assume only light Linux knowledge. User space is where normal applications run. Kernel space controls shared resources and hardware access. QEMU models the hardware; the guest driver behaves as if it were a real peripheral.</p></aside>
         </section>
 
-        <section>
-          <h2>Our route</h2>
-          <ol class="left small">
-            <li>Build a virtual RGB peripheral in QEMU</li>
-            <li>Register a Rust character device</li>
-            <li>Talk to hardware through hard-coded MMIO</li>
-            <li>Discover resources through the Device Tree</li>
-            <li>Add an ioctl and move work off the caller</li>
-            <li>Offload a hardware fade and receive its completion IRQ</li>
-          </ol>
-          <p><strong>Explain → inspect code → demonstrate</strong></p>
-          <aside class="notes">Roadmap — 45 seconds. Stages 1–5 build the outbound path. Stage 06 adds autonomous hardware and the return IRQ.</aside>
+        <section data-duration="30" data-stage="intro" data-speaker="René">
+          <h2>Linux is the kernel in our VM</h2>
+          <div class="illustrated-columns"><img class="project-portrait" src="images/linux-tux.png" alt="Tux, the Linux penguin"><div><p>The kernel manages processes, memory and devices.</p><p>Our driver runs inside it as a loadable module.</p><p>The root filesystem contains the shell, Python and tools.</p></div></div>
+          <aside class="notes"><p>[RENÉ] 30 seconds · 05:15–05:45 cumulative.</p><p>Give the minimum vocabulary before the first module demo. The kernel is the central component of the guest system; the root filesystem provides the programs and files around it. A loadable module is kernel code that Linux can add while running, which lets us replace the RGB driver during this talk. Keep user programs and kernel code distinct. [PASSAGE] Cyril: who prepares all these pieces for the VM?</p><p>Image: tux-flat.png, unmodified from vendor/buildroot/docs/website/images/, at the pinned Buildroot revision. The Linux mascot is Tux.</p></aside>
         </section>
 
-        <section class="section-title">
-          <h2>1 — First, build the hardware</h2>
-          <p>QEMU as our virtual electronics bench</p>
+        <section data-duration="30" data-stage="intro" data-speaker="Cyril">
+          <h2>Buildroot prepares our Linux environment</h2>
+          <img class="project-banner" src="images/buildroot-logo.png" alt="Buildroot">
+          <div class="flow compact-flow"><div class="card kernel"><img class="concept-icon" src="images/illustrations/worker.svg" alt="">Build tools<br><small>Rust + cross-compiler</small></div><span class="arrow">+</span><div class="card kernel"><img class="concept-icon" src="images/illustrations/module.svg" alt="">Linux<br><small>kernel + our module</small></div><span class="arrow">+</span><div class="card user"><img class="concept-icon" src="images/illustrations/terminal.svg" alt="">Root filesystem<br><small>shell + Python</small></div></div><p class="takeaway">A reproducible ARM64 system for our QEMU board.</p>
+          <aside class="notes"><p>[CYRIL] 30 seconds · 05:45–06:15 cumulative.</p><p>Suggested Cyril speaking slot: explain the workshop setup without doing a live build. Buildroot assembles the cross-compilation tools, guest Linux kernel and root filesystem. Our external configuration enables Rust and injects the selected module. The cross-compiler runs on the host and produces ARM64 guest code; QEMU itself is built on the host separately. All stages and images are prepared before the talk. Reference: <a href="https://buildroot.org/">Buildroot project</a>. [PASSAGE] René previews the steps, then opens the virtual electronics bench.</p><p>Buildroot logo: unmodified copy of vendor/buildroot/docs/website/images/logo.png from the pinned submodule.</p></aside>
         </section>
 
-        <section>
-          <h2>We are acting like a board designer</h2>
-          <div class="columns left small">
-            <div class="card hardware">
-              <h3>A hardware designer decides</h3>
-              <ul>
-                <li>register semantics</li>
-                <li>address ranges</li>
-                <li>interrupt wiring</li>
-                <li>firmware description</li>
-              </ul>
-            </div>
-            <div class="card">
-              <h3>At our scale</h3>
-              <ul>
-                <li>C structs hold device state</li>
-                <li>QEMU callbacks emulate bus accesses</li>
-                <li>the <code>virt</code> board maps the device</li>
-                <li>QEMU emits a Device Tree node</li>
-              </ul>
-            </div>
-          </div>
-          <aside class="notes">2 minutes. Stress that QEMU is not mocking the driver API: it models the other side of the hardware contract.</aside>
+        <section data-duration="15" data-stage="intro" data-speaker="René">
+          <h2>Build one boundary at a time</h2>
+          <p>Registers → file → MMIO → discovery</p><p>Command → worker → hardware completion</p><p class="takeaway">Explain a little. Observe it working. Repeat.</p>
+          <aside class="notes"><p>[RENÉ] 15 seconds · 06:15–06:30 cumulative.</p><p>Announce six driver stages plus a hardware demonstration. Rust familiarity is not required beyond knowing what the language is. Explain syntax only when it illuminates the mechanism.</p></aside>
         </section>
 
-        <section>
-          <h2>A tiny MMIO contract</h2>
-          <table class="registers">
-            <thead><tr><th>Offset</th><th>Register</th><th>Meaning</th></tr></thead>
-            <tbody>
-              <tr><td><code>0x00</code></td><td>RED</td><td>8-bit red channel</td></tr>
-              <tr><td><code>0x04</code></td><td>GREEN</td><td>8-bit green channel</td></tr>
-              <tr><td><code>0x08</code></td><td>BLUE</td><td>8-bit blue channel</td></tr>
-              <tr><td><code>0x0c</code></td><td>APPLY</td><td>write 1 to apply</td></tr>
-              <tr><td><code>0x10</code></td><td>STATUS</td><td>busy / ready / error</td></tr>
-            </tbody>
-          </table>
-          <p>Physical base: <code class="inline">0x090d0000</code> · window: <code class="inline">0x100</code></p>
-          <aside class="notes">1 minute. Registers are 32-bit accesses even though RGB values are limited to 8 bits.</aside>
+        <section data-duration="15" data-stage="hardware" data-speaker="René">
+          <p class="eyebrow">Our virtual hardware</p><div class="route" aria-label="Execution worlds"><span class="user">User space</span><span class="kernel">Linux kernel</span><span class="hardware active">Hardware</span></div><h2>QEMU is our electronics bench</h2>
+          <img class="visual-diagram" src="images/illustrations/virtual-board.svg" alt="Illustrated virtual ARM board connected to the RGB registers and LED"><p>The peripheral is C code. Linux sees physical registers.</p>
+          <aside class="notes"><p>[RENÉ] 15 seconds · 06:30–06:45 cumulative.</p><p>A virtual machine needs virtual hardware. We implement the other side of the hardware contract, not a mock of the Linux driver API.</p></aside>
         </section>
 
-        <section>
-          <h2>QEMU: reads and writes become callbacks</h2>
-          <pre><code class="language-c" data-trim data-line-numbers="1-5|7-17">
-static const MemoryRegionOps rgb_led_ops = {
-    .read = rgb_led_read,
-    .write = rgb_led_write,
-    .endianness = DEVICE_NATIVE_ENDIAN,
-};
+        <section data-duration="45" data-stage="hardware" data-speaker="Cyril">
+          <p class="eyebrow">Our virtual hardware</p><div class="route" aria-label="Execution worlds"><span class="user">User space</span><span class="kernel">Linux kernel</span><span class="hardware active">Hardware</span></div><h2>What does the device expect?</h2>
+          <img class="visual-diagram" src="images/illustrations/rgb-apply.svg" alt="Prepare red 255, green 0 and blue 0, write APPLY, observe a red LED"><p class="takeaway">Prepare the color. Apply it when ready.</p>
+          <aside class="notes"><p>[CYRIL] 45 seconds · 06:45–07:30 cumulative.</p><p>Suggested speaking slot: explain the hardware protocol before showing numbers. Ask what might happen if APPLY is written before all three channels. [PASSAGE] René gives the register map.</p></aside>
+        </section>
 
-static void rgb_led_write(void *opaque, hwaddr offset,
-                          uint64_t value, unsigned size)
-{
-    RGBLedState *s = opaque;
-    switch (offset) {
-    case RGB_LED_REG_RED:   s->red = value &amp; 0xff; break;
-    case RGB_LED_REG_GREEN: s->green = value &amp; 0xff; break;
-    case RGB_LED_REG_BLUE:  s->blue = value &amp; 0xff; break;
-    case RGB_LED_REG_APPLY: if (value == 1) rgb_led_apply(s); break;
+        <section data-duration="25" data-stage="hardware" data-speaker="René">
+          <p class="eyebrow">Our virtual hardware</p><div class="route" aria-label="Execution worlds"><span class="user">User space</span><span class="kernel">Linux kernel</span><span class="hardware active">Hardware</span></div><h2>Registers are the device vocabulary</h2>
+          <pre><code class="language-c" data-trim>enum {
+    RGB_LED_REG_RED   = 0x00,
+    RGB_LED_REG_GREEN = 0x04,
+    RGB_LED_REG_BLUE  = 0x08,
+    RGB_LED_REG_APPLY = 0x0c,
+};</code></pre><p class="muted">Base: 0x090d0000 · aligned 32-bit accesses</p>
+          <aside class="notes"><p>[RENÉ] 25 seconds · 07:30–07:55 cumulative.</p><p>Define register and offset concretely: address = base + offset. Channels use values 0–255, but accesses are 32-bit. Keep STATUS and fade registers for stage 06.</p></aside>
+        </section>
+
+        <section data-duration="30" data-stage="hardware" data-speaker="René">
+          <p class="eyebrow">Our virtual hardware</p><div class="route" aria-label="Execution worlds"><span class="user">User space</span><span class="kernel">Linux kernel</span><span class="hardware active">Hardware</span></div><h2>The device keeps its state in a struct</h2>
+          <pre><code class="language-c" data-trim>struct RGBLedState {
+    SysBusDevice parent_obj;
+    MemoryRegion mmio;
+    uint8_t red;
+    uint8_t green;
+    uint8_t blue;
+    // Fade, IRQ and transport fields omitted.
+};</code></pre><p>Offsets describe the interface. Fields hold the state.</p>
+          <aside class="notes"><p>[RENÉ] 30 seconds · 07:55–08:25 cumulative.</p><p>Excerpt from device/qemu/rgb-led.c. The enum on the previous slide defines bus offsets; this struct is QEMU internal state, not a packed register layout. MemoryRegion connects accesses to the read/write callbacks. APPLY is a command and has no stored field; reading it returns zero. Stage-06 state and host observation fields are omitted. [PASSAGE] René shows how a bus write changes this state.</p></aside>
+        </section>
+
+        <section data-duration="45" data-stage="hardware" data-speaker="René">
+          <p class="eyebrow">Our virtual hardware</p><div class="route" aria-label="Execution worlds"><span class="user">User space</span><span class="kernel">Linux kernel</span><span class="hardware active">Hardware</span></div><h2>A register write becomes a callback</h2>
+          <pre><code class="language-c" data-trim>switch (offset) {
+case RGB_LED_REG_RED:
+    s-&gt;red = value &amp; 0xff;
+    break;
+case RGB_LED_REG_APPLY:
+    if (value == 1) {
+        rgb_led_apply(s);
     }
-}
-          </code></pre>
-          <aside class="notes">1.5 minutes. Point at opaque state, offset dispatch and explicit access size policy in the full source.</aside>
+    break;
+}</code></pre><p class="snippet">Essential excerpt · surrounding setup and error handling omitted</p>
+          <aside class="notes"><p>[RENÉ] 45 seconds · 08:25–09:10 cumulative.</p><p>QEMU dispatches bus writes by offset. The state is a C structure. Show only RED and APPLY; GREEN and BLUE follow the same idea.</p></aside>
         </section>
 
-        <section>
-          <h2>QEMU: place it on the <code>virt</code> board</h2>
-          <pre><code class="language-c" data-trim data-line-numbers="1|3-11">
-[VIRT_RGB_LED] = { 0x090d0000, 0x00000100 },
-
-sysbus_create_simple("rgb-led", base, NULL);
-
-nodename = g_strdup_printf("/rgb-led@%" PRIx64, base);
-qemu_fdt_add_subnode(ms-&gt;fdt, nodename);
-qemu_fdt_setprop_string(ms-&gt;fdt, nodename,
-                        "compatible", "qemu,rgb-led");
-qemu_fdt_setprop_sized_cells(ms-&gt;fdt, nodename, "reg",
-                             2, base, 2, size);
-          </code></pre>
-          <p class="small">The address map and firmware description are two views of the same contract.</p>
-          <aside class="notes">1.5 minutes. Mention Meson/Kconfig integration briefly. The compatible string becomes the handshake with Linux later.</aside>
+        <section data-duration="10" data-stage="hardware" data-speaker="René">
+          <p class="eyebrow">Our virtual hardware</p><div class="route" aria-label="Execution worlds"><span class="user">User space</span><span class="kernel">Linux kernel</span><span class="hardware active">Hardware</span></div><h2>Give it a place on the board</h2>
+          <div class="flow"><div class="card hardware">ARM virt board</div><span class="arrow">→</span><div class="card hardware">0x090d0000</div><span class="arrow">→</span><div class="card hardware">RGB registers</div></div>
+          <aside class="notes"><p>[RENÉ] 10 seconds · 09:10–09:20 cumulative.</p><p>The integration patch maps the device on the board and describes it to Linux. Defer firmware discovery to stage 03. Next, René shows how we launch that board.</p></aside>
         </section>
 
-        <section class="demo">
-          <h2>Demo 1 — No driver, just registers</h2>
-          <ol class="small">
-            <li>Boot stage 01 with <code>make run RGB_DRIVER_STAGE=01-character-device</code></li>
-            <li><code>Ctrl-a c</code>: enter the QEMU monitor</li>
-            <li>Inspect physical memory, then return with <code>Ctrl-a c</code></li>
-            <li>Use <code>devmem</code> for RED, GREEN, BLUE and APPLY</li>
-            <li>Observe <code>rgb-led: apply RGB(255, 0, 0)</code></li>
-          </ol>
-          <pre><code class="language-shell" data-trim>
-devmem 0x090d0000 32 0xff
+        <section class="vm-launch" data-duration="40" data-stage="hardware" data-speaker="René">
+          <p class="eyebrow">Our virtual hardware</p><div class="route" aria-label="Execution worlds"><span class="user">User space</span><span class="kernel">Linux kernel</span><span class="hardware active">Hardware</span></div><h2>Boot our virtual board</h2>
+          <pre><code class="language-shell" data-trim>IMAGES=.build/buildroot-output/01-character-device/images
+.build/qemu/qemu-system-aarch64 -machine virt -cpu cortex-a57 -m 1G \
+  -nographic -serial mon:stdio -kernel &quot;$IMAGES/Image&quot; \
+  -append &quot;console=ttyAMA0 root=/dev/vda&quot; \
+  -drive file=&quot;$IMAGES/rootfs.ext4&quot;,if=none,id=hd0,format=raw \
+  -device virtio-blk-device,drive=hd0 \
+  -netdev user,id=net0,hostfwd=tcp::2222-:22 \
+  -device virtio-net-device,netdev=net0 \
+  -chardev socket,id=rgb_led,path=.build/rgb-led.sock,server=on,wait=off \
+  -global rgb-led.chardev=rgb_led</code></pre>
+          <img class="visual-diagram board-overview" src="images/illustrations/virt-board-overview.svg" alt="ARM virt board: Cortex-A57 CPU, 1 GiB RAM, GIC and our RGB MMIO device at 0x090d0000">
+          <p class="source-credit">Demo shortcut: <code>make run RGB_DRIVER_STAGE=01-character-device</code></p>
+          <aside class="notes"><p>[RENÉ] 40 seconds · 09:20–10:00 cumulative.</p><p>HOST command, from the repository root, shown to explain the VM setup; the guest is already booted before the talk. This is the launch configuration from Makefile run, with relative paths and an IMAGES variable for readability. The target additionally creates .build/tmp and sets TMPDIR. Focus on -machine virt, -kernel and the root disk; the remaining flags provide the serial console, SSH forwarding and the LED observation socket. rgb-led is instantiated by our patched virt board: no separate -device rgb-led flag is needed. The Make shortcut prepares dependencies, so do not invoke a rebuild live. The board overview shows Cortex-A57, one GiB RAM, GIC and our extra MMIO window at 0x090d0000 (0x100 bytes). The device IRQ is connected to GIC SPI 10 by integrations/qemu/0001-hw-arm-wire-the-RGB-LED-device-into-virt.patch. The IRQ is used only by stage 06; postpone those details. Keep the same VM through all driver stages. [PASSAGE] Cyril: can we use these registers before writing a driver?</p></aside>
+        </section>
+
+        <section data-duration="90" data-stage="hardware" data-speaker="Cyril" class="demo" data-demo="hardware">
+          <p class="eyebrow">Our virtual hardware</p><div class="route" aria-label="Execution worlds"><span class="user">User space</span><span class="kernel">Linux kernel</span><span class="hardware active">Hardware</span></div><h2>Demo · Talk directly to registers</h2>
+          <pre><code class="language-shell" data-trim>devmem 0x090d0000 32 0xff
 devmem 0x090d0004 32 0x00
 devmem 0x090d0008 32 0x00
-devmem 0x090d000c 32 0x01
-          </code></pre>
-          <aside class="notes">
-            DEMO — 2 minutes. The image and QEMU must be prebuilt. In the monitor use “xp /5wx 0x090d0000”. Back in Linux run the four devmem writes. Expected QEMU line: rgb-led: apply RGB(255, 0, 0). Fallback: show the commands and expected line on this slide.
-          </aside>
+devmem 0x090d000c 32 0x01</code></pre><p>Observe: the circle turns red.</p>
+          <aside class="notes"><p>[CYRIL] 90 seconds · 10:00–11:30 cumulative.</p><p>PREP: boot the prebuilt stage-01 VM before the talk; keep rgb unloaded. Host: uv run tools/rgb_viewer.py. QEMU must have been launched with make run RGB_DRIVER_STAGE=01-character-device so the Unix color socket is configured. Commands shown are GUEST commands. Optional monitor inspection: Ctrl-a c, xp /4wx 0x090d0000, Ctrl-a c. Do not spend time on the monitor if behind. EXPECT: rgb-led: apply RGB(255, 0, 0). FALLBACK: state the expected red circle using this slide; do not pretend a failed demo succeeded. Stop at 90s. [PASSAGE] René: now build the application-to-kernel boundary.</p></aside>
         </section>
 
-        <section class="section-title">
-          <h2>2 — A character device, but no hardware</h2>
-          <p>Build the user space ↔ kernel boundary first</p>
+        <section data-duration="30" data-stage="01" data-speaker="René">
+          <p class="eyebrow">Stage 01 · Character device</p><div class="route" aria-label="Execution worlds"><span class="user active">User space</span><span class="kernel active">Linux kernel</span><span class="hardware">Hardware</span></div><h2>Can a file control a device?</h2>
+          <img class="concept-icon" src="images/illustrations/file.svg" alt=""><p class="big"><code>echo FF0000 &gt; /dev/rgb</code></p><p>The path connects an application to our driver.</p>
+          <aside class="notes"><p>[RENÉ] 30 seconds · 11:30–12:00 cumulative.</p><p>Define character device: a file-like entry whose operations are handled by a driver. It is not an ordinary file storing the text.</p></aside>
         </section>
 
-        <section>
-          <h2>What happens to <code>echo FF0000 &gt; /dev/rgb</code>?</h2>
-          <div class="flow">
-            <div class="card user">shell<br /><code>write(fd, buf, 7)</code></div>
-            <div class="arrow">→</div>
-            <div class="card kernel">VFS<br /><code>file_operations.write</code></div>
-            <div class="arrow">→</div>
-            <div class="card kernel">our Rust callback<br /><code>rgb_write</code></div>
-          </div>
-          <p class="small"><code>/dev/rgb</code> is a rendezvous point, not the hardware itself.</p>
-          <aside class="notes">1 minute. This stage deliberately stops before MMIO so we can isolate the VFS concepts.</aside>
+        <section data-duration="45" data-stage="01" data-speaker="René">
+          <p class="eyebrow">Stage 01 · Character device</p><div class="route" aria-label="Execution worlds"><span class="user active">User space</span><span class="kernel active">Linux kernel</span><span class="hardware">Hardware</span></div><h2>Follow one write</h2>
+          <div class="flow"><div class="card user"><img class="concept-icon" src="images/illustrations/terminal.svg" alt="">shell<br><code>write()</code></div><span class="arrow">→</span><div class="card kernel"><img class="concept-icon" src="images/illustrations/file.svg" alt="">VFS<br>routes the call</div><span class="arrow">→</span><div class="card kernel"><img class="concept-icon" src="images/illustrations/module.svg" alt="">our device<br>(callback)<br>receives bytes</div></div>
+          <aside class="notes"><p>[RENÉ] 45 seconds · 12:00–12:45 cumulative.</p><p>Define syscall: controlled entry into the kernel. Define VFS briefly as Linux common file interface. The shell opens the device then writes seven bytes including newline. Here “our device” means the Linux character device: its registered callback receives the bytes, not the QEMU peripheral directly. Callback means a function registered for Linux to call.</p></aside>
         </section>
 
-        <section>
-          <h2>Major, minor, and <code>mknod</code></h2>
-          <div class="columns left small">
-            <div>
-              <p><strong>Major</strong></p>
-              <p>selects the registered driver</p>
-              <p><strong>Minor</strong></p>
-              <p>selects one device managed by it</p>
-            </div>
-            <pre><code class="language-shell" data-trim>
-cat /proc/devices
-# 240 rgb
-
-mknod /dev/rgb c 240 0
-ls -l /dev/rgb
-# crw-r--r-- ... 240, 0
-            </code></pre>
-          </div>
-          <aside class="notes">1.5 minutes. Explain that the dynamic major must be read from the log or /proc/devices; never hard-code 240 in the live demo.</aside>
+        <section data-duration="30" data-stage="01" data-speaker="René">
+          <p class="eyebrow">Stage 01 · Character device</p><div class="route" aria-label="Execution worlds"><span class="user active">User space</span><span class="kernel active">Linux kernel</span><span class="hardware">Hardware</span></div><h2>Major and minor identify the destination</h2>
+          <div class="flow"><div class="card user"><img class="concept-icon" src="images/illustrations/file.svg" alt="">/dev/rgb</div><span class="arrow">→</span><div class="card kernel"><img class="concept-icon" src="images/illustrations/module.svg" alt="">major<br>registered driver</div><span class="arrow">→</span><div class="card kernel"><img class="concept-icon" src="images/illustrations/led.svg" alt="">minor 0<br>one device</div></div><p class="takeaway"><code>mknod</code> creates that association.</p>
+          <aside class="notes"><p>[RENÉ] 30 seconds · 12:45–13:15 cumulative.</p><p>Explain why the pathname alone is not enough. Major is dynamically allocated; read /proc/devices rather than assume 240. Create the node once in the demonstration session; recreate only if the major changes or the VM reboots.</p></aside>
         </section>
 
-        <section>
-          <h2>Registering the Rust character device</h2>
-          <pre><code class="language-rust" data-trim data-line-numbers="1-5|7-10|12-16">
-let mut raw_fops: bindings::file_operations =
-    unsafe { MaybeUninit::zeroed().assume_init() };
-raw_fops.owner = module.as_ptr();
-raw_fops.open = Some(rgb_open);
+        <section data-duration="60" data-stage="01" data-speaker="René">
+          <p class="eyebrow">Stage 01 · Character device</p><div class="route" aria-label="Execution worlds"><span class="user active">User space</span><span class="kernel active">Linux kernel</span><span class="hardware">Hardware</span></div><h2>Register the device and its callbacks</h2>
+          <pre><code class="language-rust" data-trim>raw_fops.open = Some(rgb_open);
 raw_fops.write = Some(rgb_write);
-
-to_result(unsafe {
-    bindings::alloc_chrdev_region(
-        &amp;mut dev, 0, 1, c_str!("rgb").as_char_ptr())
-})?;
-
+let fops = KBox::new(raw_fops, GFP_KERNEL)?;
+bindings::alloc_chrdev_region(
+    &amp;mut dev, 0, 1, c_str!(&quot;rgb&quot;).as_char_ptr());
 bindings::cdev_init(cdev_ptr, ptr::from_ref(&amp;*fops));
-to_result(unsafe { bindings::cdev_add(cdev_ptr, dev, 1) })?;
-
-let major = (dev &gt;&gt; bindings::MINORBITS) as u32;
-          </code></pre>
-          <p class="small">Stable allocations and explicit cleanup bridge Rust ownership with C kernel APIs.</p>
-          <aside class="notes">2 minutes. The actual source wraps C return values with to_result and cleans every partial failure path.</aside>
+bindings::cdev_add(cdev_ptr, dev, 1);</code></pre><p class="snippet">Excerpts from RgbModule::init · allocations, unsafe blocks and error handling omitted</p><p>Allocate a number → attach operations → publish the device.</p>
+          <aside class="notes"><p>[RENÉ] 60 seconds · 13:15–14:15 cumulative.</p><p>Explain the three steps, not every C type. module! connects loading the module to RgbModule::init. The operations table assigns open/write callbacks; KBox gives it a stable allocated address. alloc_chrdev_region allocates the major/minor range, cdev_init associates the table, cdev_add makes that range callable. The actual source allocates cdev, wraps C calls in unsafe with safety comments, checks all return values and unwinds failures. These are separated source excerpts, not a standalone safe function. mknod remains a separate step to create the user-visible path. [PASSAGE] René follows the bytes into the write callback.</p></aside>
         </section>
 
-        <section>
-          <h2>The write callback crosses a trust boundary</h2>
-          <pre><code class="language-rust" data-trim data-line-numbers="1-4|6-12">
-let user_ptr = UserPtr::from_ptr(user_buffer.cast_mut().cast());
+        <section data-duration="30" data-stage="01" data-speaker="René">
+          <p class="eyebrow">Stage 01 · Character device</p><div class="route" aria-label="Execution worlds"><span class="user active">User space</span><span class="kernel active">Linux kernel</span><span class="hardware">Hardware</span></div><h2>User memory needs a checked copy</h2>
+          <pre><code class="language-rust" data-trim>let user_ptr = UserPtr::from_ptr(user_buffer.cast_mut().cast());
 let mut reader = UserSlice::new(user_ptr, count).reader();
-reader.read_slice(&amp;mut buffer[..count])?;
-
-let digits = input.strip_prefix(b"#").unwrap_or(input);
-if digits.len() != 6 {
-    return None;
-}
-Some((
-    parse_byte(&amp;digits[0..2])?,
-    parse_byte(&amp;digits[2..4])?,
-    parse_byte(&amp;digits[4..6])?,
-))
-          </code></pre>
-          <aside class="notes">1 minute. Never dereference a user pointer directly. The driver accepts RRGGBB, an optional #, and surrounding whitespace.</aside>
+reader.read_slice(&amp;mut buffer[..count])?;</code></pre><p class="snippet">Essential excerpt · surrounding setup and error handling omitted</p><p>Copy first. Validate the color next.</p>
+          <aside class="notes"><p>[RENÉ] 30 seconds · 14:15–14:45 cumulative.</p><p>This is after count was checked against buffer size. Explain &amp;: borrowing an existing value; ? propagates a failure. A user pointer is not safe to dereference directly. The helper performs a checked copy. Avoid teaching generic lifetime notation here.</p></aside>
         </section>
 
-        <section class="demo">
-          <h2>Demo 2 — Load and use</h2>
-          <pre><code class="language-shell" data-trim>
-# The VM was started with stage 01 in Demo 1.
-modprobe rgb
+        <section data-duration="15" data-stage="01" data-speaker="René">
+          <p class="eyebrow">Stage 01 · Character device</p><div class="route" aria-label="Execution worlds"><span class="user">User space</span><span class="kernel active">Linux kernel</span><span class="hardware">Hardware</span></div><h2>Rust helps us own the resources</h2>
+          <p>Acquire a resource → keep its owner alive.</p><p><code>Drop</code> releases it when that owner goes away.</p><p class="muted"><code>unsafe</code> marks obligations at the C interface.</p>
+          <aside class="notes"><p>[RENÉ] 15 seconds · 14:45–15:00 cumulative.</p><p>Explain ownership as responsibility for cleanup, not a Rust language lecture. The manual cdev registration has unsafe C boundaries; Rust does not automatically prove arbitrary C pointer lifetimes. Full registration and unwind paths stay in the repository. [PASSAGE] Cyril loads and uses the stage-01 module.</p></aside>
+        </section>
+
+        <section data-duration="120" data-stage="01" data-speaker="Cyril" class="demo" data-demo="01">
+          <p class="eyebrow">Stage 01 · Character device</p><div class="route" aria-label="Execution worlds"><span class="user active">User space</span><span class="kernel active">Linux kernel</span><span class="hardware">Hardware</span></div><h2>Demo · Linux receives the color</h2>
+          <pre><code class="language-shell" data-trim>modprobe rgb
 lsmod
-major=$(awk '$2 == "rgb" { print $1 }' /proc/devices)
-mknod /dev/rgb c "$major" 0
-echo FF0000 &gt; /dev/rgb
-dmesg | tail
-          </code></pre>
-          <aside class="notes">
-            DEMO — 2.5 minutes. Load the stage-01 module already installed in this VM. Create the node once; reuse it while the major stays unchanged. The write logs a requested color without applying it in QEMU. Keep this VM for all later demos.
-          </aside>
+major=$(awk &#x27;$2 == &quot;rgb&quot; { print $1 }&#x27; /proc/devices)
+mknod /dev/rgb c &quot;$major&quot; 0
+echo 00FF00 &gt; /dev/rgb</code></pre><p>Observe: Linux logs green. The LED stays red.</p>
+          <aside class="notes"><p>[CYRIL] 120 seconds · 15:00–17:00 cumulative.</p><p>GUEST commands. PREP: stage-01 VM kept from hardware demo, rgb not loaded, /dev/rgb not yet created. The prior hardware demo left the LED red: green is deliberately different so no hardware update is obvious. EXPECT: requested color r=0 g=255 b=0; no QEMU apply line. FALLBACK: point to the expected contrast on the slide. Limit loading/node setup to this demo, 120s maximum.</p></aside>
         </section>
 
-        <section class="section-title">
-          <h2>3 — Cross the MMIO boundary</h2>
-          <p>Start with a physical address baked into the driver</p>
+        <section data-duration="30" data-stage="01" data-speaker="Cyril">
+          <p class="eyebrow">Stage 01 · Character device</p><div class="route" aria-label="Execution worlds"><span class="user active">User space</span><span class="kernel active">Linux kernel</span><span class="hardware">Hardware</span></div><h2>One boundary works. One is missing.</h2>
+          <div class="flow"><div class="card user"><img class="concept-icon" src="images/illustrations/terminal.svg" alt="">Application ✓</div><span class="arrow">→</span><div class="card kernel"><img class="concept-icon" src="images/illustrations/module.svg" alt="">Driver ✓</div><span class="arrow">→</span><div class="card hardware"><img class="concept-icon" src="images/illustrations/led.svg" alt="">No hardware access yet</div></div>
+          <aside class="notes"><p>[CYRIL] 30 seconds · 17:00–17:30 cumulative.</p><p>Interpret the observation rather than only operate the terminal: receiving bytes is distinct from controlling the peripheral. [PASSAGE] René: connect the driver to the registers.</p></aside>
         </section>
 
-        <section>
-          <h2>Reserve → map → access → release</h2>
-          <div class="flow tiny">
-            <div class="card kernel"><code>request_mem_region</code><br />claim ownership</div>
-            <div class="arrow">→</div>
-            <div class="card kernel"><code>ioremap</code><br />create kernel mapping</div>
-            <div class="arrow">→</div>
-            <div class="card hardware"><code>writel</code><br />perform MMIO</div>
-          </div>
-          <pre><code class="language-rust" data-trim>
-const RGB_MMIO_BASE: usize = 0x090d0000;
-const RGB_MMIO_SIZE: usize = 0x1000;
-
-let resource = bindings::request_mem_region(
-    RGB_MMIO_BASE as _, RGB_MMIO_SIZE as _, c_str!("rgb").as_char_ptr());
-let base = bindings::ioremap(RGB_MMIO_BASE as _, RGB_MMIO_SIZE);
-          </code></pre>
-          <aside class="notes">1.5 minutes. A physical address is not a pointer. ioremap creates the architecture-correct kernel mapping. Drop performs iounmap and release_mem_region.</aside>
+        <section data-duration="30" data-stage="02" data-speaker="René">
+          <p class="eyebrow">Stage 02 · MMIO</p><div class="route" aria-label="Execution worlds"><span class="user">User space</span><span class="kernel active">Linux kernel</span><span class="hardware active">Hardware</span></div><h2>A physical address is not a Rust pointer</h2>
+          <img class="visual-diagram" src="images/illustrations/mmio-map.svg" alt="Kernel MMIO mapping connected to physical RGB device registers"><p class="takeaway">Map the device before accessing its registers.</p>
+          <aside class="notes"><p>[RENÉ] 30 seconds · 17:30–18:00 cumulative.</p><p>MMIO means memory-mapped input/output: device operations appear at addresses. The kernel must establish a suitable mapping and reserve the resource.</p></aside>
         </section>
 
-        <section>
-          <h2>Ordering is part of the device protocol</h2>
-          <pre><code class="language-rust" data-trim data-line-numbers="1-4">
-bindings::writel(red as u32, self.register(RGB_REG_RED));
+        <section data-duration="60" data-stage="02" data-speaker="René">
+          <p class="eyebrow">Stage 02 · MMIO</p><div class="route" aria-label="Execution worlds"><span class="user">User space</span><span class="kernel active">Linux kernel</span><span class="hardware active">Hardware</span></div><h2>Reserve, then map</h2>
+          <pre><code class="language-rust" data-trim>let resource = bindings::request_mem_region(
+    RGB_MMIO_BASE as _, RGB_MMIO_SIZE as _,
+    c_str!(&quot;rgb&quot;).as_char_ptr());
+let base = bindings::ioremap(RGB_MMIO_BASE as _, RGB_MMIO_SIZE);</code></pre><p class="snippet">Essential excerpt · surrounding setup and error handling omitted</p><p class="muted">Stage 02: physical base fixed in the driver.</p>
+          <aside class="notes"><p>[RENÉ] 60 seconds · 18:00–19:00 cumulative.</p><p>Excerpt is inside the unsafe C boundary; errors and cleanup omitted. Reserve prevents resource conflicts, map gives a kernel virtual address. The stage uses base 0x090d0000 and a 0x1000 mapping; the peripheral window itself is 0x100. Do not confuse those sizes. Drop unmaps and releases.</p></aside>
+        </section>
+
+        <section data-duration="60" data-stage="02" data-speaker="René">
+          <p class="eyebrow">Stage 02 · MMIO</p><div class="route" aria-label="Execution worlds"><span class="user">User space</span><span class="kernel active">Linux kernel</span><span class="hardware active">Hardware</span></div><h2>The order is the protocol</h2>
+          <pre><code class="language-rust" data-trim>bindings::writel(red as u32, self.register(RGB_REG_RED));
 bindings::writel(green as u32, self.register(RGB_REG_GREEN));
 bindings::writel(blue as u32, self.register(RGB_REG_BLUE));
-bindings::writel(1, self.register(RGB_REG_APPLY));
-          </code></pre>
-          <div class="three-columns small">
-            <div class="card kernel">volatile I/O helpers</div>
-            <div class="card kernel">aligned offsets</div>
-            <div class="card hardware">APPLY comes last</div>
-          </div>
-          <p class="small">Useful for learning; unsuitable for reusable board support.</p>
-          <aside class="notes">1 minute. MMIO is not ordinary memory. We rely on kernel I/O helpers rather than Rust volatile primitives.</aside>
+bindings::writel(1, self.register(RGB_REG_APPLY));</code></pre><p class="snippet">Essential excerpt · surrounding setup and error handling omitted</p><p class="takeaway">Prepare all three channels. Apply last.</p>
+          <aside class="notes"><p>[RENÉ] 60 seconds · 19:00–20:00 cumulative.</p><p>MMIO is not ordinary RAM: use kernel I/O helpers. The Rust cast as u32 widens channel values for 32-bit accesses. Do not explain memory-barrier taxonomy. [PASSAGE] Cyril makes the LED change through /dev/rgb.</p></aside>
         </section>
 
-        <section class="demo">
-          <h2>Demo 3 — The driver reaches QEMU</h2>
-          <pre><code class="language-shell" data-trim>
-make image RGB_DRIVER_STAGE=02-mmio-fixed
-scp -O -P 2222 .build/buildroot-output/02-mmio-fixed/\
-  build/linux-6.18.7/samples/rust/rgb.ko root@localhost:/tmp/rgb.ko
-# Guest:
-rmmod rgb
-lsmod
-insmod /tmp/rgb.ko
-lsmod
-echo 00FF00 &gt; /dev/rgb
-          </code></pre>
-          <p><strong>Linux:</strong> <code>wrote MMIO color r=0 g=255 b=0</code></p>
-          <p><strong>QEMU:</strong> <code>rgb-led: apply RGB(0, 255, 0)</code></p>
-          <aside class="notes">
-            DEMO — 1.5 minutes. Recreate /dev/rgb if the dynamically allocated major changed. Keep Linux and QEMU output visible. Fallback: use the two expected trace lines on screen.
-          </aside>
+        <section data-duration="90" data-stage="02" data-speaker="Cyril" class="demo" data-demo="02">
+          <p class="eyebrow">Stage 02 · MMIO</p><div class="route" aria-label="Execution worlds"><span class="user active">User space</span><span class="kernel active">Linux kernel</span><span class="hardware active">Hardware</span></div><h2>Demo · The write reaches hardware</h2>
+          <pre><code class="language-shell" data-trim>rmmod rgb
+insmod /tmp/rgb-02.ko
+echo 00FF00 &gt; /dev/rgb</code></pre><p>Observe: Linux and QEMU agree. The LED turns green.</p>
+          <aside class="notes"><p>[CYRIL] 90 seconds · 20:00–21:30 cumulative.</p><p>PREP HOST: all six modules built and copied before the talk as /tmp/rgb-01.ko through rgb-06.ko. Example copy: scp -O -P 2222 .build/buildroot-output/02-mmio-fixed/build/linux-6.18.7/samples/rust/rgb.ko root@localhost:/tmp/rgb-02.ko. GUEST: lsmod after rmmod/insmod when useful; check major remains the same and recreate node only if it changed. EXPECT Linux wrote MMIO color and QEMU apply RGB(0,255,0). FALLBACK: explain those two expected observations. Stop at 90s. [PASSAGE] René: what if the hardware address changes?</p></aside>
         </section>
 
-        <section class="section-title">
-          <h2>4 — Let firmware describe the board</h2>
-          <p>Device Tree + platform driver</p>
+        <section data-duration="15" data-stage="03" data-speaker="Cyril" data-cut-candidate="true">
+          <p class="eyebrow">Stage 03 · Device Tree</p><div class="route" aria-label="Execution worlds"><span class="user">User space</span><span class="kernel active">Linux kernel</span><span class="hardware active">Hardware</span></div><h2>How does Linux know the device exists?</h2>
+          <p class="big">Someone must describe the board.</p>
+          <aside class="notes"><p>[CYRIL] 15 seconds · 21:30–21:45 cumulative.</p><p>Suggested spoken question and answer before handing to René. QEMU acts as board designer and provides firmware data. OPTIONAL CUT: skip all stage-03 slides/demo; say the later modules discover their resources through firmware, then jump to 04. Still load the prebuilt 04 module directly. This saves the full 3-minute block.</p></aside>
         </section>
 
-        <section>
-          <h2>The Device Tree is the hand-off</h2>
-          <pre><code class="language-dts" data-trim>
-rgb-led@90d0000 {
-    compatible = "qemu,rgb-led";
+        <section data-duration="30" data-stage="03" data-speaker="René" data-cut-candidate="true">
+          <p class="eyebrow">Stage 03 · Device Tree</p><div class="route" aria-label="Execution worlds"><span class="user">User space</span><span class="kernel active">Linux kernel</span><span class="hardware active">Hardware</span></div><h2>Device Tree hands over the resources</h2>
+          <pre><code class="language-dts" data-trim>rgb-led@90d0000 {
+    compatible = &quot;qemu,rgb-led&quot;;
     reg = &lt;0x0 0x090d0000 0x0 0x100&gt;;
-};
-          </code></pre>
-          <div class="flow small">
-            <div class="card hardware">QEMU emits<br />device node</div>
-            <div class="arrow">→</div>
-            <div class="card kernel">Linux creates<br />platform device</div>
-            <div class="arrow">→</div>
-            <div class="card kernel">compatible match<br />calls <code>probe</code></div>
-          </div>
-          <aside class="notes">1.5 minutes. On physical ARM boards this hand-off often comes from the bootloader and board DTS instead of QEMU.</aside>
+};</code></pre><p>Identity + address range, provided by the board.</p>
+          <aside class="notes"><p>[RENÉ] 30 seconds · 21:45–22:15 cumulative.</p><p>Device Tree is a description, not executable driver code. QEMU emits this node. The compatible string is the matching identity; reg carries base and size. No need to teach address-cell encodings.</p></aside>
         </section>
 
-        <section>
-          <h2>A Rust platform driver</h2>
-          <pre><code class="language-rust" data-trim data-line-numbers="1-5|7-15">
-kernel::of_device_table!(
-    RGB_OF_TABLE, MODULE_OF_TABLE,
-    &lt;RgbDriver as platform::Driver&gt;::IdInfo,
-    [(of::DeviceId::new(c_str!("qemu,rgb-led")), ())]
-);
-
-impl platform::Driver for RgbDriver {
-    type IdInfo = ();
-    const OF_ID_TABLE: Option&lt;of::IdTable&lt;Self::IdInfo&gt;&gt; =
-        Some(&amp;RGB_OF_TABLE);
-
-    fn probe(pdev: &amp;platform::Device&lt;Core&gt;, _info: Option&lt;&amp;()&gt;)
-        -&gt; Result&lt;Pin&lt;KBox&lt;Self&gt;&gt;&gt; {
-        let hw = RgbDevice::map(pdev)?;
-        // register /dev/rgb ...
-    }
-}
-          </code></pre>
-          <p class="small">The driver asks for resource 0; it no longer knows the physical base.</p>
-          <aside class="notes">1.5 minutes. Highlight matching, probe lifetime and devres-backed mapping. The compatible string is the stable identity.</aside>
+        <section data-duration="45" data-stage="03" data-speaker="René" data-cut-candidate="true">
+          <p class="eyebrow">Stage 03 · Device Tree</p><div class="route" aria-label="Execution worlds"><span class="user">User space</span><span class="kernel active">Linux kernel</span><span class="hardware active">Hardware</span></div><h2>Register a platform driver with Linux</h2>
+          <pre><code class="language-rust" data-trim>kernel::module_platform_driver! {
+    type: RgbDriver,
+    name: &quot;rgb&quot;,
+    authors: [&quot;RGB driver contributors&quot;],
+    description: &quot;Rust RGB platform and character device driver&quot;,
+    license: &quot;GPL&quot;,
+}</code></pre><p>Linux registers the driver, matches the device, then calls probe.</p>
+          <aside class="notes"><p>[RENÉ] 45 seconds · 22:15–23:00 cumulative.</p><p>Exact declaration from driver/stages/03-device-tree/rgb.rs. Unlike stage 01 module!, this helper arranges platform-driver registration on load and removal on unload. The implementation of platform::Driver supplies its Device Tree ID table and probe method, shown next. The character device still needs its own registration: module, platform driver and /dev node are related but distinct. Do not teach macro expansion or all metadata fields.</p></aside>
         </section>
 
-        <section class="demo">
-          <h2>Demo 4 — Discovery instead of assumptions</h2>
-          <pre><code class="language-shell" data-trim>
-make image RGB_DRIVER_STAGE=03-device-tree
-# Copy this stage's rgb.ko to /tmp/rgb.ko, then in the guest:
-rmmod rgb
-lsmod
-insmod /tmp/rgb.ko
-lsmod
+        <section data-duration="30" data-stage="03" data-speaker="René" data-cut-candidate="true">
+          <p class="eyebrow">Stage 03 · Device Tree</p><div class="route" aria-label="Execution worlds"><span class="user">User space</span><span class="kernel active">Linux kernel</span><span class="hardware active">Hardware</span></div><h2>Match → probe → map the resource</h2>
+          <pre><code class="language-rust" data-trim>[(of::DeviceId::new(c_str!(&quot;qemu,rgb-led&quot;)), ())]
+
+let request = pdev.io_request_by_index(0).ok_or(ENODEV)?;
+let mmio = KBox::pin_init(
+    request.iomap_exclusive_sized::&lt;RGB_MMIO_SIZE&gt;(), GFP_KERNEL,
+)?;</code></pre><p class="snippet">Essential excerpt · surrounding setup and error handling omitted</p><p>The driver asks for resource 0.</p>
+          <aside class="notes"><p>[RENÉ] 30 seconds · 23:00–23:30 cumulative.</p><p>Two separate excerpts: the identity-table entry and the mapping inside probe. probe is Linux calling us when a compatible device is available. KBox owns a kernel allocation; pin_init creates it at a stable address. Do not explain Pin generics in detail. [PASSAGE] Cyril shows the match.</p></aside>
+        </section>
+
+        <section data-duration="60" data-stage="03" data-speaker="Cyril" class="demo" data-demo="03" data-cut-candidate="true">
+          <p class="eyebrow">Stage 03 · Device Tree</p><div class="route" aria-label="Execution worlds"><span class="user active">User space</span><span class="kernel active">Linux kernel</span><span class="hardware active">Hardware</span></div><h2>Demo · Discovery replaces the fixed address</h2>
+          <pre><code class="language-shell" data-trim>rmmod rgb
+insmod /tmp/rgb-03.ko
 dmesg | tail
-cat /proc/iomem | grep -i rgb
-echo 0000FF &gt; /dev/rgb
-          </code></pre>
-          <p>Expected: <code>platform device matched</code></p>
-          <aside class="notes">
-            DEMO — 1.5 minutes. Show the match message before writing blue. If the module auto-loads from the image, unload it before inserting the copied artifact so that the transition remains explicit.
-          </aside>
+echo 0000FF &gt; /dev/rgb</code></pre><p>Observe: <code>platform device matched</code>, then blue.</p>
+          <aside class="notes"><p>[CYRIL] 60 seconds · 23:30–24:30 cumulative.</p><p>Precopied module; same running VM and node. Identify the probe log before sending the color. FALLBACK: the match message and expected blue are stated here. Stop at 60s. [PASSAGE] René: writing a color is useful; now request an operation.</p></aside>
         </section>
 
-        <section class="section-title">
-          <h2>5 — Commands beyond <code>write</code></h2>
-          <p>ioctl, synchronous work, then a workqueue</p>
+        <section data-duration="30" data-stage="04" data-speaker="René">
+          <p class="eyebrow">Stage 04 · Synchronous ioctl</p><div class="route" aria-label="Execution worlds"><span class="user active">User space</span><span class="kernel active">Linux kernel</span><span class="hardware">Hardware</span></div><h2>A color is data. A cycle is a command.</h2>
+          <p><code>write</code>: set this color.</p><p><code>ioctl</code>: perform this operation.</p>
+          <aside class="notes"><p>[RENÉ] 30 seconds · 24:30–25:00 cumulative.</p><p>ioctl is a syscall for device-specific commands. Introduce only the distinction needed for the cycle; skip ABI bit layouts and versioning.</p></aside>
         </section>
 
-        <section>
-          <h2>A deliberately small ioctl contract</h2>
-          <div class="columns">
-            <pre><code class="language-rust" data-trim>
-const RGB_IOCTL_CYCLE: u32 =
-    _IO('r' as u32, 0x01);
+        <section data-duration="60" data-stage="04" data-speaker="René">
+          <p class="eyebrow">Stage 04 · Synchronous ioctl</p><div class="route" aria-label="Execution worlds"><span class="user active">User space</span><span class="kernel active">Linux kernel</span><span class="hardware">Hardware</span></div><h2>Both sides agree on one command</h2>
+          <pre><code class="language-rust" data-trim>const RGB_IOCTL_CYCLE: u32 = _IO(&#x27;r&#x27; as u32, 0x01);
 
 match cmd {
-    RGB_IOCTL_CYCLE =&gt;
-        hw.cycle_primary_colors(),
+    RGB_IOCTL_CYCLE =&gt; hw.cycle_primary_colors(),
     _ =&gt; Err(ENOTTY),
-}
-            </code></pre>
-            <pre><code class="language-python" data-trim>
-RGB_IOCTL_CYCLE =
-    (ord("r") &lt;&lt; 8) | 0x01
-
-with open("/dev/rgb", "rb+") as dev:
-    fcntl.ioctl(
-        dev.fileno(),
-        RGB_IOCTL_CYCLE,
-        0,
-    )
-            </code></pre>
-          </div>
-          <aside class="notes">1.5 minutes. `_IO` carries no payload here. Unknown commands return ENOTTY. Production ABIs need versioning and much more care.</aside>
+}</code></pre><p class="snippet">Essential excerpt · surrounding setup and error handling omitted</p><p>Python calls <code>fcntl.ioctl(fd, command)</code>.</p>
+          <aside class="notes"><p>[RENÉ] 60 seconds · 25:00–26:00 cumulative.</p><p>The match is a simplified dispatch, not a copy-paste-ready function: actual callback converts Result to the C return value. _IO has no payload here. ENOTTY means an unsupported ioctl. Explain match as selecting a command; no Rust prerequisite.</p></aside>
         </section>
 
-        <section>
-          <h2>Stage 04 vs stage 05</h2>
-          <div class="columns left small">
-            <div class="card kernel">
-              <h3>04 — synchronous</h3>
-              <ul>
-                <li>ioctl performs the full cycle</li>
-                <li>caller blocks for ~3 seconds</li>
-                <li>simple lifetime model</li>
-              </ul>
-            </div>
-            <div class="card kernel">
-              <h3>05 — workqueue</h3>
-              <ul>
-                <li>ioctl schedules work and returns</li>
-                <li>kernel worker performs the cycle</li>
-                <li><code>Arc</code> keeps device state alive</li>
-              </ul>
-            </div>
-          </div>
-          <p class="small">Asynchronous software is still running the stepped color sequence.</p>
-          <aside class="notes">1.5 minutes. “Async” here means deferred kernel work, not Rust async/await and not autonomous hardware. The current POC cycles R → G → B; it is a simple stand-in for a fade.</aside>
+        <section data-duration="60" data-stage="04" data-speaker="René">
+          <p class="eyebrow">Stage 04 · Synchronous ioctl</p><div class="route" aria-label="Execution worlds"><span class="user active">User space</span><span class="kernel active">Linux kernel</span><span class="hardware active">Hardware</span></div><h2>The caller performs the whole cycle</h2>
+          <img class="visual-diagram" src="images/illustrations/timeline-sync.svg" alt="Python waits inside ioctl while its kernel thread writes colors and sleeps between writes"><p class="takeaway">Synchronous: Python waits for the operation.</p>
+          <aside class="notes"><p>[RENÉ] 60 seconds · 26:00–27:00 cumulative.</p><p>The callback runs in the calling thread in kernel mode. During fsleep that thread sleeps; it does not burn CPU in a busy loop. Total is about 3 seconds. [PASSAGE] Cyril: ask the audience when the next Python line will run.</p><p>Illustration: time runs left to right. Short purple ticks are actual register writes; the gaps are sleeps, not continuous CPU execution. The Python and caller-in-kernel rows refer to the same thread on either side of the syscall boundary.</p></aside>
         </section>
 
-        <section>
-          <h2>Follow the command through all three worlds</h2>
-          <div class="flow tiny">
-            <div class="card user">Python<br /><code>fcntl.ioctl</code></div>
-            <div class="arrow">→</div>
-            <div class="card kernel">VFS<br /><code>unlocked_ioctl</code></div>
-            <div class="arrow">→</div>
-            <div class="card kernel">workqueue<br /><code>set_color</code></div>
-            <div class="arrow">→</div>
-            <div class="card hardware">MMIO<br />QEMU callbacks</div>
-          </div>
-          <p class="takeaway">One command becomes three register transactions.</p>
-          <aside class="notes">1 minute. This is the architectural payoff: each boundary has a visible contract and observable traces.</aside>
+        <section data-duration="90" data-stage="04" data-speaker="Cyril" class="demo" data-demo="04">
+          <p class="eyebrow">Stage 04 · Synchronous ioctl</p><div class="route" aria-label="Execution worlds"><span class="user active">User space</span><span class="kernel active">Linux kernel</span><span class="hardware active">Hardware</span></div><h2>Demo · The application waits</h2>
+          <pre><code class="language-shell" data-trim>rmmod rgb
+insmod /tmp/rgb-04.ko
+time python3 /tmp/rgb_ioctl_cycle.py /dev/rgb</code></pre><p>Observe: R → G → B, then Python returns (~3 s).</p>
+          <aside class="notes"><p>[CYRIL] 90 seconds · 27:00–28:30 cumulative.</p><p>PREP: copy driver/rgb_ioctl_cycle.py to /tmp before the talk. Ask for a prediction, run, interpret the time output. This is its own demo, distinct from stage 05. FALLBACK: explain the expected three-second return shown here. Stop at 90s. [PASSAGE] René: can we return earlier?</p></aside>
         </section>
 
-        <section class="demo">
-          <h2>Demo 5 — ioctl end to end</h2>
-          <pre><code class="language-shell" data-trim>
-make image RGB_DRIVER_STAGE=05-ioctl-async
-# Copy rgb.ko and rgb_ioctl_cycle.py, then replace the guest module.
-python3 /tmp/rgb_ioctl_cycle.py /dev/rgb
-          </code></pre>
-          <div class="three-columns small">
-            <div class="card user">application returns</div>
-            <div class="card kernel">worker logs R → G → B</div>
-            <div class="card hardware">QEMU applies each color</div>
-          </div>
-          <aside class="notes">
-            DEMO — 2 minutes. Copy driver/rgb_ioctl_cycle.py to the guest in advance. Show that the ioctl caller returns while the workqueue continues. Expected driver messages: starting cycle, three colors, finished cycle. Expected QEMU messages: three RGB apply lines.
-          </aside>
+        <section data-duration="45" data-stage="05" data-speaker="René" data-cut-candidate="true">
+          <p class="eyebrow">Stage 05 · Workqueue</p><div class="route" aria-label="Execution worlds"><span class="user active">User space</span><span class="kernel active">Linux kernel</span><span class="hardware">Hardware</span></div><h2>Let a worker continue for us</h2>
+          <pre><code class="language-rust" data-trim>workqueue::system_long().try_spawn(GFP_KERNEL, move || {
+    hw.cycle_primary_colors();
+    // Release the held module reference after the work.
+})?;</code></pre><p class="snippet">Essential excerpt · surrounding setup and error handling omitted</p><p>The ioctl queues work and returns.</p>
+          <aside class="notes"><p>[RENÉ] 45 seconds · 28:30–29:15 cumulative.</p><p>Shortened excerpt: actual code also guards against concurrent cycles, pins module code while work runs and handles scheduling failure. Explain move as transferring captured state to the job. The kernel worker performs exactly the same stepped cycle; this is not Rust async/await.</p></aside>
         </section>
 
-        <section class="section-title">
-          <p class="stage-label">Stage 06 — hardware offloading</p>
-          <h2>6 — Let the hardware do the fade</h2>
-          <p>Completion notification through an IRQ</p>
+        <section data-duration="45" data-stage="05" data-speaker="René" data-cut-candidate="true">
+          <p class="eyebrow">Stage 05 · Workqueue</p><div class="route" aria-label="Execution worlds"><span class="user">User space</span><span class="kernel active">Linux kernel</span><span class="hardware">Hardware</span></div><h2>Shared work needs shared ownership</h2>
+          <p><code>Arc</code> keeps the device state alive.</p><p>A module reference keeps the worker code loaded.</p>
+          <aside class="notes"><p>[RENÉ] 45 seconds · 29:15–30:00 cumulative.</p><p>Arc is a shared reference-counted owner: queued work can outlive the ioctl call. Keeping data and keeping module code alive are distinct responsibilities. No need to display the reference-counting mechanics. OPTIONAL CUT: skip this stage and say stage 06 will return from START while the hardware performs the operation; no worker is needed for that fade.</p></aside>
         </section>
 
-        <section>
-          <h2>Why offload the operation?</h2>
-          <div class="columns left small">
-            <div class="card kernel">
-              <h3>Today</h3>
-              <p>The kernel worker wakes up, writes each color and sleeps.</p>
-            </div>
-            <div class="card hardware">
-              <h3>Target</h3>
-              <p>The driver submits one command. The peripheral advances autonomously.</p>
-            </div>
-          </div>
-          <p class="takeaway">Submit → continue working → handle completion</p>
-          <aside class="notes">1 minute. This is the same motivation behind DMA engines, storage queues and many accelerators.</aside>
+        <section data-duration="30" data-stage="05" data-speaker="Cyril" data-cut-candidate="true">
+          <p class="eyebrow">Stage 05 · Workqueue</p><div class="route" aria-label="Execution worlds"><span class="user active">User space</span><span class="kernel active">Linux kernel</span><span class="hardware active">Hardware</span></div><h2>Who is doing the work now?</h2>
+          <img class="visual-diagram" src="images/illustrations/timeline-worker.svg" alt="Python returns early; a kernel worker continues the RGB cycle"><p class="takeaway">Asynchronous for Python. Still driven by software.</p>
+          <aside class="notes"><p>[CYRIL] 30 seconds · 30:00–30:30 cumulative.</p><p>Interpret the architecture before manipulating: the operation is asynchronous for the caller, but remains software-driven. The peripheral is not yet autonomous. [PASSAGE] stay with Cyril for the demo.</p><p>Illustration: use the same three-second time scale as stage 04. Python returns early; only the worker retains the stepped operation. The drawing does not imply an application completion notification in this stage.</p></aside>
         </section>
 
-        <section>
-          <h2>The return path: an interrupt</h2>
-          <div class="flow tiny">
-            <div class="card user">ioctl<br />start fade</div>
-            <div class="arrow">→</div>
-            <div class="card kernel">driver<br />program command</div>
-            <div class="arrow">→</div>
-            <div class="card hardware">QEMU timer<br />runs fade</div>
-            <div class="arrow">→</div>
-            <div class="card hardware">raise IRQ</div>
-            <div class="arrow">→</div>
-            <div class="card kernel">Rust IRQ thread<br />ack + wake WAIT</div>
-          </div>
-          <p class="small">Python sleeps in WAIT; the device signals completion.</p>
-          <aside class="notes">1.5 minutes. A level IRQ remains asserted until acknowledged. The hard IRQ wakes a kernel IRQ thread, which acknowledges the source and wakes WAIT.</aside>
+        <section data-duration="60" data-stage="05" data-speaker="Cyril" class="demo" data-demo="05" data-cut-candidate="true">
+          <p class="eyebrow">Stage 05 · Workqueue</p><div class="route" aria-label="Execution worlds"><span class="user active">User space</span><span class="kernel active">Linux kernel</span><span class="hardware active">Hardware</span></div><h2>Demo · Python returns before the colors finish</h2>
+          <pre><code class="language-shell" data-trim>rmmod rgb
+insmod /tmp/rgb-05.ko
+time python3 /tmp/rgb_ioctl_cycle.py /dev/rgb</code></pre><p>Observe: Python returns; R → G → B continues.</p>
+          <aside class="notes"><p>[CYRIL] 60 seconds · 30:30–31:30 cumulative.</p><p>Same client as stage 04. Let the worker finish before replacing the module. FALLBACK: contrast the immediate return with the continuing expected cycle. Stop at 60s. [PASSAGE] René: now move the operation into hardware.</p></aside>
         </section>
 
-        <section>
-          <h2>Stage 06 implementation contract</h2>
-          <p class="stage-label">START → hardware timer → IRQ → WAIT returns</p>
-          <div class="three-columns left tiny">
-            <div class="card hardware"><strong>QEMU</strong><br />fade command/state<br />virtual timer<br />IRQ output<br />migration/reset state</div>
-            <div class="card kernel"><strong>Rust driver</strong><br />discover IRQ<br />request handler<br />submit command<br />ack completion<br />safe teardown</div>
-            <div class="card user"><strong>User space</strong><br />trigger fade<br />receive completion<br />handle busy/error<br />observe latency</div>
-          </div>
-          <aside class="notes">1 minute. START: _IOW(r, 2, 8), target u32 and duration_ms u32. WAIT: _IO(r, 3). One active fade; concurrent START/write returns EBUSY.</aside>
+        <section data-duration="45" data-stage="06" data-speaker="René">
+          <p class="eyebrow">Stage 06 · Hardware + IRQ</p><div class="route" aria-label="Execution worlds"><span class="user">User space</span><span class="kernel active">Linux kernel</span><span class="hardware active">Hardware</span></div><h2>Hardware offloading: give the job to the device</h2>
+          <div class="flow"><div class="card kernel"><img class="concept-icon" src="images/illustrations/cpu.svg" alt="">CPU<br>submit drawing commands</div><span class="arrow">→</span><div class="card hardware"><img class="concept-icon" src="images/illustrations/gpu.svg" alt="">Graphics card<br>render the pixels</div><span class="arrow">→</span><div class="card kernel"><img class="concept-icon" src="images/illustrations/terminal.svg" alt="">CPU<br>use the completed result</div></div><p class="takeaway">Describe the operation. Let specialized hardware execute it.</p>
+          <aside class="notes"><p>[RENÉ] 45 seconds · 31:30–32:15 cumulative.</p><p>Introduce the term before using it for our LED. A graphics card is a familiar example: the CPU submits commands, the GPU performs rendering, and software synchronizes with completion when it needs the result. This is an analogy; do not imply every draw call produces a CPU interrupt. A workqueue only moves execution to another kernel thread; hardware offloading moves the intermediate steps into the device. [PASSAGE] René applies the same idea to the fade.</p></aside>
         </section>
 
-        <section class="demo">
-          <p class="stage-label">Stage 06 demo</p>
-          <h2>Demo 6 — Autonomous fade + completion IRQ</h2>
-          <ol class="small">
-            <li>User program sets red, then submits one fade-to-black command</li>
-            <li>Driver returns without performing intermediate color writes</li>
-            <li>QEMU executes the fade on its virtual timer</li>
-            <li>QEMU raises the IRQ on completion</li>
-            <li>Rust IRQ thread acknowledges it and wakes Python in WAIT</li>
-          </ol>
-          <p><strong>Acceptance signal:</strong> traces show exactly one complete round trip.</p>
-          <aside class="notes">
-            DEMO — Run the stage-06 image and copy rgb_ioctl_fade.py into the guest. Record /proc/interrupts before and after. Observe the PID sleeping during a 10-second fade. IRQ log and counter prove delivery; sleeping alone does not.
-          </aside>
+        <section data-duration="15" data-stage="06" data-speaker="René">
+          <p class="eyebrow">Stage 06 · Hardware + IRQ</p><div class="route" aria-label="Execution worlds"><span class="user">User space</span><span class="kernel active">Linux kernel</span><span class="hardware active">Hardware</span></div><h2>Let the device perform the fade</h2>
+          <img class="visual-diagram" src="images/illustrations/timeline-offload.svg" alt="Python sleeps in WAIT, hardware fades from red to black, one IRQ signals completion">
+          <aside class="notes"><p>[RENÉ] 15 seconds · 32:15–32:30 cumulative.</p><p>Offloading means the device performs intermediate steps. In our virtual hardware, a QEMU timer advances the fade. This demonstrates the contract, not a physical LED circuit.</p><p>Illustration: default three-second fade, separate from the ten-second inspection demo. Only the submission and completion require driver activity. The gradient is the device autonomous work; the upward arrows are completion via IRQ and wakeup.</p></aside>
         </section>
 
-        <section>
-          <h2>Is Python really sleeping?</h2>
-          <pre><code class="language-shell" data-trim>
-# Guest terminal 1: note the printed PID
-python3 /tmp/rgb_ioctl_fade.py --duration-ms 10000
-# Guest terminal 2: replace 123 with that PID
-grep '^State:' /proc/123/status
-# State: S (sleeping)
-grep rgb /proc/interrupts
-          </code></pre>
-          <p class="small">Record the IRQ counter before and after: one fade, one interrupt.</p>
-          <aside class="notes">Show START returning quickly, WAIT sleeping, then the IRQ counter increment. Defaults are red → black, 3000 ms. The client first sets red, then submits one hardware fade to black. --color selects the starting color. Use 10000 ms to allow time to inspect the process.</aside>
+        <section data-duration="30" data-stage="06" data-speaker="René">
+          <p class="eyebrow">Stage 06 · Hardware + IRQ</p><div class="route" aria-label="Execution worlds"><span class="user">User space</span><span class="kernel active">Linux kernel</span><span class="hardware active">Hardware</span></div><h2>Add an operation to the register contract</h2>
+          <table><tr><th>Register</th><th>Purpose</th></tr><tr><td>TARGET + DURATION</td><td>Where to go, and how long</td></tr><tr><td>COMMAND + STATUS</td><td>Start, cancel, busy or ready</td></tr><tr><td>IRQ_ENABLE + IRQ_STATUS</td><td>Enable and acknowledge completion</td></tr></table>
+          <aside class="notes"><p>[RENÉ] 30 seconds · 32:30–33:00 cumulative.</p><p>These controls belong to the stage-06 operation. Values and offsets are in the source and usage guide; do not read a full register table aloud. Client default sets red first, then fades to black over 3000 ms.</p></aside>
         </section>
 
-        <section>
-          <h2>Sleeping alone does not prove an IRQ</h2>
-          <table class="registers">
-            <tr><th>Stage</th><th>Who executes?</th><th>Who sleeps?</th></tr>
-            <tr><td>04</td><td>ioctl callback</td><td>Python thread during software delays</td></tr>
-            <tr><td>05</td><td>kernel worker</td><td>worker between color writes</td></tr>
-            <tr><td>06</td><td>QEMU timer</td><td>Python thread waiting for completion</td></tr>
-          </table>
-          <pre><code class="language-text" data-trim>
-QEMU: fade complete, raising IRQ
-Rust: completion IRQ received, acknowledging generation=1
-Python: WAIT returned — fade completed
-          </code></pre>
-          <aside class="notes">The hardware raises the line; Linux enters the hard handler and wakes the IRQ thread; the IRQ thread checks and acknowledges the source then notifies WAIT. Python becomes runnable and resumes when scheduled.</aside>
+        <section data-duration="30" data-stage="06" data-speaker="René">
+          <p class="eyebrow">Stage 06 · Hardware + IRQ</p><div class="route" aria-label="Execution worlds"><span class="user active">User space</span><span class="kernel active">Linux kernel</span><span class="hardware active">Hardware</span></div><h2>START submits. WAIT waits.</h2>
+          <pre><code class="language-rust" data-trim>io.write32(color, RGB_REG_TARGET);
+io.write32(duration, RGB_REG_DURATION);
+io.write32(1, RGB_REG_IRQ_ENABLE);
+io.write32(1, RGB_REG_COMMAND);</code></pre><p class="snippet">Essential excerpt · surrounding setup and error handling omitted</p><p>Python: <code>START</code> → <code>WAIT</code></p>
+          <aside class="notes"><p>[RENÉ] 30 seconds · 33:00–33:30 cumulative.</p><p>Excerpt from start after validation, locking and stale-interrupt acknowledgement. START has a target/duration payload; WAIT is separate. Python sleeps inside WAIT and consumes no CPU while asleep. Other applications can run.</p></aside>
         </section>
 
-        <section>
-          <h2>What changed at each step?</h2>
-          <table class="registers">
-            <thead><tr><th>Stage</th><th>New boundary</th><th>Main lesson</th></tr></thead>
-            <tbody>
-              <tr><td>QEMU</td><td>register contract</td><td>hardware is an interface</td></tr>
-              <tr><td>01</td><td>VFS</td><td>character device lifecycle</td></tr>
-              <tr><td>02</td><td>MMIO</td><td>mapped I/O and ordering</td></tr>
-              <tr><td>03</td><td>Device Tree</td><td>discovery and resources</td></tr>
-              <tr><td>04–05</td><td>ioctl/workqueue</td><td>command ABI and deferred work</td></tr>
-              <tr><td>06</td><td>IRQ</td><td>hardware-driven completion</td></tr>
-            </tbody>
-          </table>
-          <aside class="notes">Conclusion — 1 minute. The RGB result is simple; the reusable knowledge is in the boundaries and lifetimes.</aside>
+        <section data-duration="45" data-stage="06" data-speaker="René">
+          <p class="eyebrow">Stage 06 · Hardware + IRQ</p><div class="route" aria-label="Execution worlds"><span class="user">User space</span><span class="kernel">Linux kernel</span><span class="hardware active">Hardware</span></div><h2>The timer belongs to QEMU</h2>
+          <pre><code class="language-c" data-trim>s-&gt;red = rgb_led_interpolate(s-&gt;start_red, s-&gt;target &gt;&gt; 16,
+                             elapsed, s-&gt;duration_ms);
+// Green and blue are updated in the same way.
+if (elapsed == s-&gt;duration_ms) {
+    s-&gt;status = RGB_LED_STATUS_READY;
+    s-&gt;irq_status = 1;
+    rgb_led_update_irq(s);
+}</code></pre><p class="snippet">Essential excerpt · surrounding setup and error handling omitted</p>
+          <aside class="notes"><p>[RENÉ] 45 seconds · 33:30–34:15 cumulative.</p><p>This is inside rgb_led_tick; state publication and rescheduling are omitted. Every 20 ms of virtual time, interpolate channels; at the deadline reach the target exactly. No driver writes are needed for intermediate colors.</p></aside>
         </section>
 
-        <section>
-          <h2>Repository map</h2>
-          <pre><code class="language-text" data-trim>
-device/qemu/          virtual RGB peripheral
-driver/stages/        six reproducible Rust driver stages
-driver/*.py           user-space ioctl client
-integrations/         minimal QEMU and Buildroot patches
-buildroot-external/   kernel configuration and source injection
-slides/               this presentation
-          </code></pre>
-          <p class="small"><code>make check</code> validates QEMU and the selected driver stage.<br />Default: stage 06, including fade and completion IRQ.</p>
-          <aside class="notes">30 seconds. Point attendees to docs/utilisation.md for validation and the six-stage demonstration.</aside>
+        <section data-duration="60" data-stage="06" data-speaker="René">
+          <p class="eyebrow">Stage 06 · Hardware + IRQ</p><div class="route" aria-label="Execution worlds"><span class="user">User space</span><span class="kernel active">Linux kernel</span><span class="hardware active">Hardware</span></div><h2>An IRQ is the device asking for attention</h2>
+          <img class="visual-diagram" src="images/illustrations/irq-round-trip.svg" alt="Device to GIC to threaded IRQ handler to Python, with an acknowledgement back to the device"><p class="takeaway">A level IRQ stays asserted until acknowledged.</p>
+          <aside class="notes"><p>[RENÉ] 60 seconds · 34:15–35:15 cumulative.</p><p>GIC is the ARM interrupt controller. Device Tree describes the wiring; the driver requests the Linux IRQ. Acknowledgement clears the device source so it stops requesting attention. Do not equate clearing this source with all interrupt-controller bookkeeping.</p></aside>
         </section>
 
-        <section>
-          <h2>Thanks!</h2>
-          <div class="columns">
-            <img src="images/thanks.gif" alt="Thank you" width="95%" />
-            <img src="images/qr_feedback.png" alt="Feedback QR code" width="70%" />
-          </div>
-          <p class="small">Cyril Marin · René Ribaud</p>
-          <aside class="notes">Questions. Confirm the QR destination before the event.</aside>
+        <section data-duration="60" data-stage="06" data-speaker="René">
+          <p class="eyebrow">Stage 06 · Hardware + IRQ</p><div class="route" aria-label="Execution worlds"><span class="user active">User space</span><span class="kernel active">Linux kernel</span><span class="hardware active">Hardware</span></div><h2>Acknowledge, record, wake</h2>
+          <pre><code class="language-rust" data-trim>// Inside the threaded IRQ handler, after checking IRQ_STATUS:
+io.write32(1, RGB_REG_IRQ_STATUS);
+// After the MMIO access:
+state.completed = state.submitted;
+self.done.notify_all();</code></pre><p class="snippet">Essential excerpt · surrounding setup and error handling omitted</p><p>Hard IRQ entry → IRQ thread → Python becomes runnable.</p>
+          <aside class="notes"><p>[RENÉ] 60 seconds · 35:15–36:15 cumulative.</p><p>Two abbreviated excerpts from the actual handler. Our hard handler requests its thread; the threaded handler checks the source, locks state, acknowledges, records completion and wakes waiters. The scheduler later gives Python CPU time. This distinction explains why the IRQ thread may use the mutex. [PASSAGE] Cyril: what evidence should we look for?</p></aside>
+        </section>
+
+        <section data-duration="45" data-stage="06" data-speaker="Cyril">
+          <p class="eyebrow">Stage 06 · Hardware + IRQ</p><div class="route" aria-label="Execution worlds"><span class="user active">User space</span><span class="kernel active">Linux kernel</span><span class="hardware active">Hardware</span></div><h2>Sleeping is only part of the evidence</h2>
+          <p>State <code>S</code>: the Python thread is sleeping.</p><p>IRQ counter + handler log: Linux received completion.</p><p>WAIT returns: Python was notified.</p>
+          <aside class="notes"><p>[CYRIL] 45 seconds · 36:15–37:00 cumulative.</p><p>Stage 04 also sleeps, so S alone proves nothing about IRQ delivery. Explain the three observations before running the live sequence. [PASSAGE] continue with Cyril for the final demo.</p></aside>
+        </section>
+
+        <section data-duration="210" data-stage="06" data-speaker="Cyril" class="demo" data-demo="06">
+          <p class="eyebrow">Stage 06 · Hardware + IRQ</p><div class="route" aria-label="Execution worlds"><span class="user active">User space</span><span class="kernel active">Linux kernel</span><span class="hardware active">Hardware</span></div><h2>Demo · The hardware wakes the application</h2>
+          <pre><code class="language-shell" data-trim>rmmod rgb
+insmod /tmp/rgb-06.ko
+python3 /tmp/rgb_ioctl_fade.py --duration-ms 10000</code></pre><pre><code class="language-shell" data-trim># Second guest terminal; use the PID printed by Python
+grep &#x27;^State:&#x27; /proc/123/status
+grep rgb /proc/interrupts</code></pre><p>Observe: red → black, IRQ count +1, WAIT returns.</p>
+          <aside class="notes"><p>[CYRIL] 210 seconds · 37:00–40:30 cumulative.</p><p>PREP: /tmp/rgb_ioctl_fade.py copied; visualizer already running on host; second SSH guest terminal open. Keep the SAME stage-01 VM and load stage 06, do not reboot. Record grep rgb /proc/interrupts BEFORE starting; note PID printed, inspect S during the 10-second fade, compare counter AFTER. Point at QEMU fade complete, raising IRQ; Rust completion IRQ received, acknowledging; Python WAIT returned. Default is 3 seconds; 10 seconds leaves time for inspection. No compilation live. FALLBACK: describe the expected three observations from this slide and return to the conclusion; stop troubleshooting at the 210s budget. [PASSAGE] René brings the journey together.</p></aside>
+        </section>
+
+        <section data-duration="45" data-stage="end" data-speaker="René">
+          <p class="eyebrow">What to take home</p><h2>Three contracts, one complete round trip</h2>
+          <div class="flow"><div class="card user"><img class="concept-icon" src="images/illustrations/terminal.svg" alt="">Application contract<br>write / ioctl</div><span class="arrow">→</span><div class="card kernel"><img class="concept-icon" src="images/illustrations/module.svg" alt="">Driver contract<br>resources / ownership</div><span class="arrow">→</span><div class="card hardware"><img class="concept-icon" src="images/illustrations/led.svg" alt="">Hardware contract<br>MMIO / IRQ</div></div><p class="takeaway">The LED is simple. The boundaries are reusable.</p>
+          <aside class="notes"><p>[RENÉ] 45 seconds · 40:30–41:15 cumulative.</p><p>Recap the stages by their purpose, without reading a six-row technical table. Explain why a tiny peripheral made each contract visible. Preserve one question for the audience: who runs the operation and who reports completion?</p></aside>
+        </section>
+
+        <section data-duration="15" data-stage="end" data-speaker="Cyril">
+          <p class="eyebrow">What to take home</p><h2>The hardware now speaks back.</h2>
+          <div class="led black" aria-label="LED off"></div><p>We sent a request. We observed its completion.</p>
+          <aside class="notes"><p>[CYRIL] 15 seconds · 41:15–41:30 cumulative.</p><p>Suggested closing takeaway in your own words. [PASSAGE] René closes and invites questions.</p></aside>
+        </section>
+
+        <section data-duration="30" data-stage="end" data-speaker="René">
+          <p class="eyebrow">What to take home</p><h2>Try it, then ask us anything.</h2>
+          <p class="link"><a href="https://github.com/uggla/linux_rust_driver">https://github.com/uggla/linux_rust_driver</a></p><p class="link"><code>docs/utilisation.md</code> · <code>make check</code></p><div class="closing-links"><div><img src="images/thanks.gif" alt="Thank you" width="140"><p class="muted">Cyril Marin · René Ribaud</p></div><div><div class="qr-placeholder" role="img" aria-label="Reserved space for the repository URL QR code">Repository<br>QR code</div><p class="muted">Source code</p></div><div><img src="images/qr_feedback.png" alt="Feedback QR code" width="170"><p class="muted">Feedback</p></div></div>
+          <aside class="notes"><p>[RENÉ] 30 seconds · 41:30–42:00 cumulative.</p><p>Close in 30 seconds: explain how to reproduce, mention six prebuilt/replayable stages and tests, acknowledge the audience. Repository URL: https://github.com/uggla/linux_rust_driver. The dashed square is a reserved location, not a scannable QR: replace it with a QR encoding this URL before the event. Keep the feedback QR separate and verify its destination. This ends the prepared 42 minutes. Keep 3 minutes slack for demo transitions or recovery; Q&amp;A follows the 45-minute slot. Do not silently use Q&amp;A time to finish technical content.</p></aside>
         </section>
       </div>
     </div>

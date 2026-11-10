@@ -1,0 +1,9 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 108" role="img" aria-labelledby="title desc">
+  <title id="title">Laptop with a status LED</title>
+  <desc id="desc">Laptop with a status LED</desc>
+  <defs>
+    <marker id="arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0L10 5L0 10Z" fill="#29343b"/></marker>
+    <linearGradient id="fade"><stop stop-color="#ed3434"/><stop offset="1" stop-color="#111820"/></linearGradient>
+  </defs>
+  <g font-family="Arial, Helvetica, sans-serif" fill="#29343b" stroke-linecap="round" stroke-linejoin="round"><rect x="18" y="8" width="92" height="65" rx="7" fill="#e7edf0" stroke="#29343b" stroke-width="3" /><rect x="26" y="16" width="76" height="48" rx="2" fill="#d9eaf5" stroke="#2b6cb0" stroke-width="3" /><path d="M18 73L4 92Q4 98 12 98H116Q124 98 124 92L110 73Z" fill="#cbd4d9" stroke="#29343b" stroke-width="3"/><path d="M48 85H80" stroke="#29343b" stroke-width="3"/><circle cx="101" cy="79" r="5" fill="#ed3434"/></g>
+</svg>

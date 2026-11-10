@@ -1,0 +1,9 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 108" role="img" aria-labelledby="title desc">
+  <title id="title">Application terminal</title>
+  <desc id="desc">Application terminal</desc>
+  <defs>
+    <marker id="arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0L10 5L0 10Z" fill="#29343b"/></marker>
+    <linearGradient id="fade"><stop stop-color="#ed3434"/><stop offset="1" stop-color="#111820"/></linearGradient>
+  </defs>
+  <g font-family="Arial, Helvetica, sans-serif" fill="#29343b" stroke-linecap="round" stroke-linejoin="round"><rect x="5" y="12" width="118" height="85" rx="8" fill="#eaf2fa" stroke="#2b6cb0" stroke-width="3" /><path d="M5 32H123M24 48L36 58L24 68M47 71H71" fill="none" stroke="#2b6cb0" stroke-width="5"/><circle cx="17" cy="22" r="3" fill="#2b6cb0"/><circle cx="28" cy="22" r="3" fill="#2b6cb0"/><circle cx="39" cy="22" r="3" fill="#2b6cb0"/></g>
+</svg>
