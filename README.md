@@ -91,7 +91,7 @@ la seconde produit `slides/linux_rust_drivers.pdf`.
 
 | Répertoire | Contenu et rôle |
 | --- | --- |
-| `docs/` | Guide de construction, validation et démonstration ; chronologie des étapes du pilote. |
+| `docs/` | Guide de construction, validation et démonstration des six étapes du pilote. |
 | `slides/` | Template HTML de la présentation, HTML généré, styles, images et exports. Modifier la présentation dans `slides/templates/index.html`. |
 | `reveal.js/` | Sous-module du moteur de présentation et de ses plugins. |
 | `build_pdf/` | Conteneur et scripts d'export de la présentation en PDF. |
@@ -114,6 +114,4 @@ Consulter le répertoire [docs/](docs/) :
 
 - [Guide d'utilisation](docs/utilisation.md) : préparer l'environnement,
   construire et valider le projet, puis dérouler la démonstration progressive
-  dans une même VM.
-- [Évolution du pilote](docs/evolution.md) : comprendre l'apport de chaque
-  étape et retrouver la chronologie du projet.
+  dans une même VM et comprendre l’apport de chaque étape du pilote.
