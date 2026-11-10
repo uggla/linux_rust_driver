@@ -1,10 +1,11 @@
 #!/usr/bin/env python3
-"""Boot the generated image and exercise one RGB MMIO write."""
+"""Boot a selected driver stage and validate its supported interfaces."""
 
 from __future__ import annotations
 
-import os
+import argparse
 import base64
+import os
 import select
 import subprocess
 import sys
@@ -53,10 +54,22 @@ def send(process: subprocess.Popen[bytes], command: str) -> None:
 
 
 def main() -> int:
-    if len(sys.argv) not in (4, 5):
-        raise SystemExit("usage: smoke_vm.py QEMU KERNEL ROOTFS [GUEST_TEST]")
-
-    qemu, kernel, rootfs = map(Path, sys.argv[1:4])
+    parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument("qemu", type=Path)
+    parser.add_argument("kernel", type=Path)
+    parser.add_argument("rootfs", type=Path)
+    parser.add_argument("guest_test", nargs="?", type=Path)
+    parser.add_argument("--stage", default="06-hw-offloading", choices=(
+        "01-character-device", "02-mmio-fixed", "03-device-tree",
+        "04-ioctl-sync", "05-ioctl-async", "06-hw-offloading",
+    ))
+    parser.add_argument("--extended", action="store_true",
+                        help="also run guest scenarios available for this stage")
+    args = parser.parse_args()
+    qemu, kernel, rootfs = args.qemu, args.kernel, args.rootfs
+    guest_test = args.guest_test
+    if guest_test is None and args.extended and args.stage == "06-hw-offloading":
+        guest_test = Path(__file__).with_name("guest_fade.py")
     for artifact in (qemu, kernel, rootfs):
         if not artifact.is_file():
             raise SystemExit(f"missing build artifact: {artifact}")
@@ -120,18 +133,19 @@ def main() -> int:
             "echo FF0000 > /dev/rgb; rc=$?; echo __RGB_WRITE_${rc}__",
         )
         wait_for(process, output, b"__RGB_WRITE_0__", COMMAND_TIMEOUT)
-        wait_for(process, output, b"rgb-led: apply RGB(255, 0, 0)", COMMAND_TIMEOUT)
-
-        required = (
-            b"platform device matched",
-            b"requested color r=255 g=0 b=0",
-            b"wrote MMIO color r=255 g=0 b=0",
-        )
+        required = [b"requested color r=255 g=0 b=0"]
+        if args.stage != "01-character-device":
+            wait_for(process, output, b"rgb-led: apply RGB(255, 0, 0)", COMMAND_TIMEOUT)
+            required.append(b"wrote MMIO color r=255 g=0 b=0")
+        if args.stage not in ("01-character-device", "02-mmio-fixed"):
+            required.append(b"platform device matched")
+        if args.stage == "01-character-device" and b"rgb-led: apply" in output:
+            fail("character-only stage unexpectedly touched hardware", output)
         missing = [item for item in required if item not in output]
         if missing:
             fail(f"missing expected log entries: {missing!r}", output)
-        if len(sys.argv) == 5:
-            payload = base64.b64encode(Path(sys.argv[4]).read_bytes()).decode()
+        if guest_test is not None:
+            payload = base64.b64encode(guest_test.read_bytes()).decode()
             send(process, ": > /tmp/rgb-test.b64")
             for offset in range(0, len(payload), 512):
                 send(process, "echo '" + payload[offset:offset + 512] + "' >> /tmp/rgb-test.b64")

@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Submit a hardware fade, then sleep in WAIT until its completion IRQ."""
+"""Set a starting color, fade to black in hardware, and wait for its IRQ."""
 import argparse
 import fcntl
 import os
@@ -21,15 +21,18 @@ def color(value):
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("device", nargs="?", default="/dev/rgb")
-    parser.add_argument("--color", type=color, default=0xff0000)
+    parser.add_argument("--color", type=color, default=0xff0000,
+                        help="starting color as RRGGBB (default: FF0000); fades to black")
     parser.add_argument("--duration-ms", type=int, default=3000)
     args = parser.parse_args()
     if not 1 <= args.duration_ms <= 60000:
         parser.error("duration must be between 1 and 60000 ms")
-    with open(args.device, "rb", buffering=0) as dev:
+    with open(args.device, "r+b", buffering=0) as dev:
         print(f"PID: {os.getpid()}", flush=True)
+        dev.write(f"{args.color:06X}\n".encode("ascii"))
+        print(f"Fade: {args.color:06X} → 000000 ({args.duration_ms} ms)", flush=True)
         start = time.monotonic()
-        fcntl.ioctl(dev, RGB_IOCTL_FADE_START, struct.pack("=II", args.color, args.duration_ms))
+        fcntl.ioctl(dev, RGB_IOCTL_FADE_START, struct.pack("=II", 0, args.duration_ms))
         print(f"START returned after {time.monotonic() - start:.3f}s", flush=True)
         print("Waiting for completion…", flush=True)
         fcntl.ioctl(dev, RGB_IOCTL_FADE_WAIT)

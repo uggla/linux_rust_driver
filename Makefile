@@ -6,7 +6,7 @@ QEMU_SRC := $(BUILD)/src/qemu
 QEMU_BUILD := $(BUILD)/qemu
 BUILDROOT_SRC := $(BUILD)/src/buildroot
 BUILDROOT_EXTERNAL := $(ROOT)/buildroot-external
-RGB_DRIVER_STAGE ?= 05-ioctl-async
+RGB_DRIVER_STAGE ?= 06-hw-offloading
 BUILDROOT_OUTPUT := $(BUILD)/buildroot-output/$(RGB_DRIVER_STAGE)
 DRIVER_SOURCE := $(ROOT)/driver/stages/$(RGB_DRIVER_STAGE)/rgb.rs
 LINUX_SOURCE := $(BUILDROOT_OUTPUT)/build/linux-6.18.7
@@ -77,9 +77,16 @@ smoke: qemu image
 	python3 $(ROOT)/tests/smoke_vm.py \
 		$(QEMU_BUILD)/qemu-system-aarch64 \
 		$(BUILDROOT_OUTPUT)/images/Image \
-		$(BUILDROOT_OUTPUT)/images/rootfs.ext4
+		$(BUILDROOT_OUTPUT)/images/rootfs.ext4 \
+		--stage $(RGB_DRIVER_STAGE)
 
-check: check-layout smoke
+check: check-layout qemu image
+	python3 $(ROOT)/tests/qemu_fade.py $(QEMU_BUILD)/qemu-system-aarch64
+	python3 $(ROOT)/tests/smoke_vm.py \
+		$(QEMU_BUILD)/qemu-system-aarch64 \
+		$(BUILDROOT_OUTPUT)/images/Image \
+		$(BUILDROOT_OUTPUT)/images/rootfs.ext4 \
+		--stage $(RGB_DRIVER_STAGE) --extended
 
 check-stages: qemu
 	@set -e; for stage in $(STAGES); do \
@@ -103,12 +110,3 @@ slides-pdf-image:
 clean:
 	@test "$(BUILD)" = "$(ROOT)/.build"
 	rm -rf "$(BUILD)"
-
-.PHONY: check-offloading
-check-offloading:
-	$(MAKE) qemu image RGB_DRIVER_STAGE=06-hw-offloading
-	python3 $(ROOT)/tests/qemu_fade.py $(QEMU_BUILD)/qemu-system-aarch64
-	python3 $(ROOT)/tests/smoke_vm.py $(QEMU_BUILD)/qemu-system-aarch64 \
-		$(BUILD)/buildroot-output/06-hw-offloading/images/Image \
-		$(BUILD)/buildroot-output/06-hw-offloading/images/rootfs.ext4 \
-		$(ROOT)/tests/guest_fade.py

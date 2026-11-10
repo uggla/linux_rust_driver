@@ -208,7 +208,7 @@ qemu_fdt_setprop_sized_cells(ms-&gt;fdt, nodename, "reg",
         <section class="demo">
           <h2>Demo 1 — No driver, just registers</h2>
           <ol class="small">
-            <li>Boot the prepared VM with <code>make run</code></li>
+            <li>Boot stage 01 with <code>make run RGB_DRIVER_STAGE=01-character-device</code></li>
             <li><code>Ctrl-a c</code>: enter the QEMU monitor</li>
             <li>Inspect physical memory, then return with <code>Ctrl-a c</code></li>
             <li>Use <code>devmem</code> for RED, GREEN, BLUE and APPLY</li>
@@ -308,21 +308,18 @@ Some((
         </section>
 
         <section class="demo">
-          <h2>Demo 2 — Load, use, unload</h2>
+          <h2>Demo 2 — Load and use</h2>
           <pre><code class="language-shell" data-trim>
-make image RGB_DRIVER_STAGE=01-character-device
-scp -P 2222 .build/buildroot-output/01-character-device/\
-  build/linux-6.18.7/samples/rust/rgb.ko root@localhost:/tmp/
-
-insmod /tmp/rgb.ko
+# The VM was started with stage 01 in Demo 1.
+modprobe rgb
+lsmod
 major=$(awk '$2 == "rgb" { print $1 }' /proc/devices)
 mknod /dev/rgb c "$major" 0
 echo FF0000 &gt; /dev/rgb
 dmesg | tail
-rmmod rgb
           </code></pre>
           <aside class="notes">
-            DEMO — 2.5 minutes. Keep the VM running and use a second terminal for scp. Expected logs: module loaded, registered major, device opened, requested color, module unloaded. No QEMU RGB output yet: that absence is the point. If scp is unavailable, use the module already present under /lib/modules and explain the copy step.
+            DEMO — 2.5 minutes. Load the stage-01 module already installed in this VM. Create the node once; reuse it while the major stays unchanged. The write logs a requested color without applying it in QEMU. Keep this VM for all later demos.
           </aside>
         </section>
 
@@ -372,8 +369,13 @@ bindings::writel(1, self.register(RGB_REG_APPLY));
           <h2>Demo 3 — The driver reaches QEMU</h2>
           <pre><code class="language-shell" data-trim>
 make image RGB_DRIVER_STAGE=02-mmio-fixed
-# copy, unload the previous module, then:
-insmod /tmp/rgb-mmio.ko
+scp -O -P 2222 .build/buildroot-output/02-mmio-fixed/\
+  build/linux-6.18.7/samples/rust/rgb.ko root@localhost:/tmp/rgb.ko
+# Guest:
+rmmod rgb
+lsmod
+insmod /tmp/rgb.ko
+lsmod
 echo 00FF00 &gt; /dev/rgb
           </code></pre>
           <p><strong>Linux:</strong> <code>wrote MMIO color r=0 g=255 b=0</code></p>
@@ -435,7 +437,11 @@ impl platform::Driver for RgbDriver {
           <h2>Demo 4 — Discovery instead of assumptions</h2>
           <pre><code class="language-shell" data-trim>
 make image RGB_DRIVER_STAGE=03-device-tree
-insmod /tmp/rgb-dt.ko
+# Copy this stage's rgb.ko to /tmp/rgb.ko, then in the guest:
+rmmod rgb
+lsmod
+insmod /tmp/rgb.ko
+lsmod
 dmesg | tail
 cat /proc/iomem | grep -i rgb
 echo 0000FF &gt; /dev/rgb
@@ -522,7 +528,8 @@ with open("/dev/rgb", "rb+") as dev:
           <h2>Demo 5 — ioctl end to end</h2>
           <pre><code class="language-shell" data-trim>
 make image RGB_DRIVER_STAGE=05-ioctl-async
-python3 rgb_ioctl_cycle.py /dev/rgb
+# Copy rgb.ko and rgb_ioctl_cycle.py, then replace the guest module.
+python3 /tmp/rgb_ioctl_cycle.py /dev/rgb
           </code></pre>
           <div class="three-columns small">
             <div class="card user">application returns</div>
@@ -588,7 +595,7 @@ python3 rgb_ioctl_cycle.py /dev/rgb
           <p class="stage-label">Stage 06 demo</p>
           <h2>Demo 6 — Autonomous fade + completion IRQ</h2>
           <ol class="small">
-            <li>User program submits one fade command</li>
+            <li>User program sets red, then submits one fade-to-black command</li>
             <li>Driver returns without performing intermediate color writes</li>
             <li>QEMU executes the fade on its virtual timer</li>
             <li>QEMU raises the IRQ on completion</li>
@@ -611,7 +618,7 @@ grep '^State:' /proc/123/status
 grep rgb /proc/interrupts
           </code></pre>
           <p class="small">Record the IRQ counter before and after: one fade, one interrupt.</p>
-          <aside class="notes">Show START returning quickly, WAIT sleeping, then the IRQ counter increment. Defaults are red, 3000 ms. Use 10000 ms to allow time to inspect the process.</aside>
+          <aside class="notes">Show START returning quickly, WAIT sleeping, then the IRQ counter increment. Defaults are red → black, 3000 ms. The client first sets red, then submits one hardware fade to black. --color selects the starting color. Use 10000 ms to allow time to inspect the process.</aside>
         </section>
 
         <section>
@@ -656,7 +663,7 @@ integrations/         minimal QEMU and Buildroot patches
 buildroot-external/   kernel configuration and source injection
 slides/               this presentation
           </code></pre>
-          <p><code>make check</code> boots the VM and verifies the complete write/MMIO path.</p>
+          <p class="small"><code>make check</code> validates QEMU and the selected driver stage.<br />Default: stage 06, including fade and completion IRQ.</p>
           <aside class="notes">30 seconds. Point attendees to docs/evolution.md and docs/utilisation.md.</aside>
         </section>
 

@@ -1,4 +1,4 @@
-RGB_DRIVER_STAGE ?= 05-ioctl-async
+RGB_DRIVER_STAGE ?= 06-hw-offloading
 RGB_DRIVER_SOURCE = $(BR2_EXTERNAL_RGB_PATH)/../driver/stages/$(RGB_DRIVER_STAGE)/rgb.rs
 
 define RGB_INSTALL_DRIVER_SOURCE

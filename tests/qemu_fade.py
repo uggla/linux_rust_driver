@@ -80,7 +80,9 @@ with tempfile.TemporaryDirectory() as temp:
             device = find_rgb()
             assert device
             qt(f'irq_intercept_out {device} sysbus-irq')
-            write(0x14, 0xff0000)
+            write(0x00, 255)
+            write(0x0c, 1)
+            write(0x14, 0)
             write(0x18, 1000)
             write(0x24, 1)
             write(0x1c, 1)
@@ -93,7 +95,7 @@ with tempfile.TemporaryDirectory() as temp:
             assert not result.strip(), result
             command('cont')
             step(500)
-            assert read(0) == 255 and read(0x20) == 1
+            assert read(0) == 0 and read(0x20) == 1
             assert any(line == 'IRQ raise 0' for line in levels), levels
             write(0x20, 1)
             assert read(0x20) == 0
@@ -106,7 +108,7 @@ with tempfile.TemporaryDirectory() as temp:
             command('cont')
             # Restore VMState + timer; advancing virtual time finishes once.
             step(1000)
-            assert read(0) == 255 and read(0x20) == 1
+            assert read(0) == 0 and read(0x20) == 1
             write(0x20, 1)
             write(0x14, 0xff)
             write(0x1c, 1)

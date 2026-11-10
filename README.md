@@ -1,81 +1,119 @@
-# Driver Linux RGB en Rust — phase 01
+# Drivers Linux en Rust : espace utilisateur, noyau et matériel
 
-Ce dépôt transforme le POC en construction reproductible. QEMU et Buildroot
-sont des sous-modules upstream immuables ; seules les sources du périphérique,
-du driver et leurs petits patches d'intégration sont suivis ici.
+Ce projet accompagne une présentation sur le développement de pilotes Linux
+en Rust. Un périphérique RGB émulé dans QEMU sert de fil conducteur pour
+explorer les échanges entre une application, le noyau Linux et le matériel.
 
-## Construction
+Le pilote se construit progressivement : périphérique caractère, accès aux
+registres MMIO, découverte par Device Tree, commandes ioctl et travail différé.
+La dernière étape confie un fondu au périphérique virtuel, qui signale sa fin
+par une IRQ et permet au pilote de réveiller l'application en attente.
 
-Prérequis principaux : Git, Make, Ninja, Python 3 et les dépendances de
-construction habituelles de QEMU/Buildroot. Les téléchargements et résultats
-sont placés dans `.build/`.
+Buildroot fournit le système Linux invité et les outils de compilation.
+Les versions de QEMU et Buildroot sont épinglées dans des sous-modules ; les
+sources du périphérique, les pilotes Rust et les patches d'intégration sont
+conservés dans ce dépôt pour rendre les démonstrations reproductibles.
+
+## Sous-modules
+
+Le dépôt référence trois projets externes comme sous-modules Git. Chaque
+référence désigne un commit précis pour retrouver les mêmes sources lors
+d'une nouvelle construction.
+
+### QEMU — `vendor/qemu/`
+
+[QEMU](https://gitlab.com/qemu-project/qemu) émule la machine ARM64 qui exécute
+Linux et le matériel auquel le pilote accède. Le projet lui ajoute un
+périphérique RGB : registres MMIO, timer de fondu et ligne IRQ reliée au
+contrôleur d'interruptions. La machine émulée décrit aussi ce périphérique
+dans le Device Tree transmis à Linux.
+
+La construction utilise un clone sous `.build/src/qemu/`. Les scripts y
+appliquent les patches de `integrations/qemu/` et y copient le périphérique
+de `device/qemu/`, en conservant le sous-module d'origine intact.
+
+### Buildroot — `vendor/buildroot/`
+
+[Buildroot](https://github.com/buildroot/buildroot) construit les outils de
+compilation et le système Linux invité : noyau avec support Rust, module du
+pilote et système de fichiers contenant les outils de démonstration,
+notamment Python et le serveur SSH Dropbear.
+
+Son clone de construction se trouve sous `.build/src/buildroot/`. Le
+répertoire `buildroot-external/` fournit les configurations, les patches Linux
+et le mécanisme qui injecte la version sélectionnée du pilote. Chaque étape
+possède sa sortie sous `.build/buildroot-output/`.
+
+### Reveal.js — `reveal.js/`
+
+[Reveal.js](https://github.com/hakimel/reveal.js) fournit le moteur de la
+présentation HTML : navigation entre diapositives, thèmes, notes du
+présentateur et coloration du code. La présentation dans `slides/` charge
+directement ses styles, scripts et plugins depuis ce sous-module.
+
+Les trois sous-modules s'initialisent depuis la racine du dépôt avec
+`git submodule update --init`. Les modifications propres au projet restent
+dans les sources, templates et patches du dépôt principal.
+
+## Construire la présentation
+
+Toutes les commandes suivantes s'exécutent depuis la **racine du dépôt**.
+La présentation est en anglais, avec des notes de démonstration, et utilise
+Reveal.js. Installer `uv`, puis initialiser les sous-modules :
 
 ```sh
-make setup
-make qemu
-make image
-make run
+git submodule update --init
+make slides
 ```
 
-La version finale `05-ioctl-async` est construite par défaut. Voir
-le [guide d'utilisation](docs/utilisation.md) pour le déroulé complet et
-[`docs/evolution.md`](docs/evolution.md) pour rejouer les étapes précédentes.
-
-`make run` démarre la VM avec la console série et expose SSH sur le port 2222.
-Dans la VM, le comportement reste volontairement manuel :
+`make slides` génère `slides/index.html` à partir de
+`slides/templates/index.html`. Pour servir la présentation et la reconstruire
+à chaque modification :
 
 ```sh
-modprobe rgb
-major=$(awk '$2 == "rgb" { print $1 }' /proc/devices)
-mknod /dev/rgb c "$major" 0
-echo FF0000 > /dev/rgb
+make slides-serve
 ```
 
-Le client ioctl est suivi dans `driver/rgb_ioctl_cycle.py`. Après l'avoir copié
-dans la VM, le cycle peut être lancé avec :
+Ouvrir ensuite [http://localhost:8000/slides/](http://localhost:8000/slides/).
+
+Pour exporter en PDF, installer également Podman et `curl`. Garder le serveur
+actif et lancer dans un second terminal :
 
 ```sh
-python3 rgb_ioctl_cycle.py /dev/rgb
-```
-
-## Validation
-
-```sh
-make check          # build final et smoke test write/MMIO dans la VM
-make check-stages   # compile les six étapes pédagogiques
-```
-
-Le smoke test charge le module, crée temporairement `/dev/rgb`, écrit du rouge
-et vérifie à la fois les traces Linux et la sortie du périphérique QEMU.
-
-## Présentation Reveal.js
-
-Le draft anglais de la présentation et ses notes de démonstration sont dans
-`slides/`. Il reprend l'habillage Snowcamp du workshop d'origine.
-
-```sh
-make slides         # génère slides/index.html
-make slides-serve   # sert http://localhost:8000 avec reconstruction continue
 make slides-pdf-image
-make slides-pdf     # nécessite le serveur actif dans un autre terminal
+make slides-pdf
 ```
 
-Les commandes de slides nécessitent `uv`. La génération PDF nécessite aussi
-Podman et produit `slides/linux_rust_drivers.pdf`.
+La première commande construit l'image de conteneur utilisée pour l'export ;
+la seconde produit `slides/linux_rust_drivers.pdf`.
 
-## Organisation
+## Organisation du dépôt
 
-- `vendor/` : sous-modules QEMU et Buildroot épinglés ;
-- `device/qemu/` : source canonique du périphérique virtuel ;
-- `driver/stages/` : six versions autonomes du driver Rust ;
-- `integrations/` : patches minimaux appliqués aux clones de build ;
-- `buildroot-external/` : defconfig, configuration noyau, patches et hook
-  d'injection du stage choisi.
+| Répertoire | Contenu et rôle |
+| --- | --- |
+| `docs/` | Guide de construction, validation et démonstration ; chronologie des étapes du pilote. |
+| `slides/` | Template HTML de la présentation, HTML généré, styles, images et exports. Modifier la présentation dans `slides/templates/index.html`. |
+| `reveal.js/` | Sous-module du moteur de présentation et de ses plugins. |
+| `build_pdf/` | Conteneur et scripts d'export de la présentation en PDF. |
+| `device/` | Sources du périphérique RGB virtuel QEMU : registres, timer de fondu et IRQ. |
+| `driver/` | Versions pédagogiques autonomes du pilote dans `stages/` et clients Python des commandes ioctl. |
+| `buildroot-external/` | Configuration Buildroot et noyau, patches Linux et injection du pilote sélectionné dans la construction. |
+| `integrations/` | Patches d'intégration du périphérique dans QEMU et du support Linux/Rust dans Buildroot. |
+| `scripts/` | Vérification de la structure et préparation des clones de construction QEMU et Buildroot. |
+| `tests/` | Tests du périphérique QEMU et vérifications des pilotes dans la VM. |
+| `vendor/` | Sous-modules QEMU et Buildroot épinglés à des versions précises. |
+| `.build/` | Répertoire généré : clones de construction, téléchargements, caches, outils, modules et images de VM. |
 
-Les scripts préparent des clones locaux sous `.build/src/`. Ils ne patchent
-jamais directement les sous-modules.
+Les scripts appliquent les patches dans les clones sous `.build/src/`, sans
+modifier les sous-modules d'origine. À la racine, le `Makefile` expose les
+commandes communes et `server.py` construit et sert les slides.
 
-L’étape `06-hw-offloading` ajoute un fondu autonome dans QEMU et une IRQ de
-fin. Son client est `driver/rgb_ioctl_fade.py` (rouge, 3 secondes par défaut).
-Voir le guide d’utilisation pour observer Python endormi et le compteur IRQ.
-Validation dédiée : `make check-offloading`.
+## Construction, validation et démonstration
+
+Consulter le répertoire [docs/](docs/) :
+
+- [Guide d'utilisation](docs/utilisation.md) : préparer l'environnement,
+  construire et valider le projet, puis dérouler la démonstration progressive
+  dans une même VM.
+- [Évolution du pilote](docs/evolution.md) : comprendre l'apport de chaque
+  étape et retrouver la chronologie du projet.

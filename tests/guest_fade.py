@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Run inside the stage-06 VM (root); invoked by make check-offloading."""
+"""Run inside the stage-06 VM (root); invoked by make check."""
 import errno
 import fcntl
 import glob
@@ -20,7 +20,7 @@ def expect(code, call):
     else:
         raise AssertionError(f'expected errno {code}')
 
-def start(fd, color=0xff0000, duration=300):
+def start(fd, color=0, duration=300):
     fcntl.ioctl(fd, START, struct.pack('=II', color, duration))
 
 def wait(fd):
@@ -46,6 +46,7 @@ for color, duration in [(0x1000000, 1), (0, 0), (0, 60001)]:
     expect(errno.EINVAL, lambda: start(fd, color, duration))
 expect(errno.ENOTTY, lambda: fcntl.ioctl(fd, (ord('r') << 8) | 1))
 expect(errno.EFAULT, lambda: fcntl.ioctl(fd, START, 0))
+os.write(fd, b'FF0000')
 initial = irq_count()
 begin = time.monotonic()
 start(fd, duration=1000)
@@ -68,7 +69,7 @@ for thread in threads:
 assert len(results) == 2
 assert time.monotonic() - begin >= 0.8
 assert irq_count() == initial + 1
-assert devmem(0x090d0000) == 255
+assert devmem(0x090d0000) == 0
 assert devmem(0x090d0004) == 0
 assert devmem(0x090d0008) == 0
 assert devmem(0x090d0020) == 0

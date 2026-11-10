@@ -25,13 +25,17 @@ ce qui évite de mélanger des modules provenant de versions différentes.
 
 ## Stage 06 — fondu matériel et IRQ
 
-`06-hw-offloading` ajoute une sixième étape, sélectionnée explicitement :
+`06-hw-offloading` ajoute une sixième étape, utilisée par défaut :
 
 ```sh
-make run RGB_DRIVER_STAGE=06-hw-offloading
-make check-offloading
+make run
+make check
 ```
 
 QEMU réalise le fondu avec un timer virtuel. Le pilote soumet les paramètres,
 puis son handler IRQ threadé acquitte la fin et réveille les appels WAIT.
 Il n'effectue aucune écriture intermédiaire de couleur.
+
+Pour une démonstration progressive, démarrer explicitement au stage 01 puis
+remplacer le module dans la même VM. Le [guide d'utilisation](utilisation.md)
+détaille les commandes et les observations de chaque étape.
