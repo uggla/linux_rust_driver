@@ -14,6 +14,38 @@ Les versions de QEMU et Buildroot sont épinglées dans des sous-modules ; les
 sources du périphérique, les pilotes Rust et les patches d'intégration sont
 conservés dans ce dépôt pour rendre les démonstrations reproductibles.
 
+## Versions et environnement testé
+
+Le projet a été testé sur **Fedora 44**, avec **GCC 16.2.1** sur l'hôte
+(`20260819`, paquet Red Hat `16.2.1-2`). Ce compilateur construit notamment
+QEMU et les outils hôtes. Buildroot fournit séparément le compilateur croisé
+ARM64 **GCC 15.2.0** pour le système invité ; le pilote utilise Rust.
+
+| Composant | Version utilisée | Référence |
+| --- | --- | --- |
+| QEMU | `11.0.50` (développement, `v11.0.0-2352-g8f1d3b586f`) | Sous-module `vendor/qemu/`, commit `8f1d3b586f1265023f75ea9c227c35d463321aef` |
+| Buildroot | `2026.05-334-g6b1f6f7a48` | Sous-module `vendor/buildroot/`, commit `6b1f6f7a480765b3d6ca07691095035a8b899eaf` |
+| Noyau Linux | `6.18.7` | Téléchargé par Buildroot, version fixée dans `buildroot-external/configs/rgb_defconfig` |
+| Reveal.js | `5.2.1-20-gbecc9bd1` | Sous-module `reveal.js/`, commit `becc9bd19e418b75027b541c41952105a1425c96` |
+
+Les compilateurs utilisés se répartissent ainsi :
+
+| Compilateur | Fourni par | Utilisation |
+| --- | --- | --- |
+| GCC 16.2.1 | Fedora 44 | QEMU et outils exécutés sur l'hôte |
+| GCC 15.2.0 | Buildroot | C du noyau Linux et des programmes ARM64 invités |
+| Rust 1.96.0 | Buildroot | Code Rust, dont le pilote |
+
+Les outils fournis par Buildroot se trouvent dans
+`.build/buildroot-output/<stage>/host/bin/`. Buildroot compile GCC, LLVM et
+Clang depuis leurs sources ; Rust est installé depuis une distribution
+binaire précompilée. Bindgen, également construit par Buildroot, utilise
+`libclang` pour générer les bindings C nécessaires au code Rust du noyau.
+
+Le noyau Linux n'est pas un sous-module du dépôt. Les références QEMU,
+Buildroot et Reveal.js correspondent aux commits épinglés, pas nécessairement
+à des versions publiées sans modifications ultérieures.
+
 ## Sous-modules
 
 Le dépôt référence trois projets externes comme sous-modules Git. Chaque
