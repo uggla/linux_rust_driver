@@ -259,7 +259,82 @@ xp /5wx 0x090d0000
 `Ctrl-a`, puis `x` quitte QEMU. Les traces `rgb-led:` viennent du processus
 QEMU sur l'hôte ; les traces `rgb:` viennent du pilote dans Linux invité.
 
-## 3. Référence des interfaces du stage 06
+## 3. Visualiser la LED sur l'hôte
+
+Le périphérique publie sa couleur sur une socket Unix de l'hôte, pour tous les
+stages qui appliquent une couleur au matériel. Le stage 01 ne touche pas au
+périphérique : le cercle reste noir. Au stage 06, il montre le fondu rouge
+vers noir pendant que Python attend sa notification IRQ dans la VM.
+
+Installer `uv`, puis démarrer la VM avec `make run`. Dans un second terminal
+**hôte**, lancer :
+
+```sh
+uv run tools/rgb_viewer.py
+```
+
+Le script déclare sa dépendance Pygame ; `uv` la gère dans un environnement
+isolé. Il utilise Python 3.10 à 3.13 pour disposer des distributions Pygame
+précompilées. Si les téléchargements Python sont configurés en mode manuel
+et qu'aucune version compatible n'est installée :
+
+```sh
+uv python install 3.13
+```
+
+La fenêtre s'ouvre en 480 × 480 pixels et peut être redimensionnée. Le cercle
+reste rond et centré ; les textes indiquent la couleur hexadécimale, la
+connexion et l'adresse. Fermer la fenêtre ou appuyer sur Échap pour quitter.
+La LED est noire au démarrage et à la déconnexion. Le client réessaie chaque
+seconde et reçoit la couleur courante dès sa connexion.
+
+Par défaut, `make run` crée `.build/rgb-led.sock` ; le visualiseur retrouve ce
+chemin depuis son script, même lancé hors de la racine du dépôt. Une seule
+connexion est servie à la fois. La VM n'attend pas le client et ne bloque pas
+si celui-ci est absent ou lent. Pour choisir un autre chemin :
+
+```sh
+make run RGB_LED_SOCKET=/tmp/rgb-led.sock
+uv run tools/rgb_viewer.py --unix /tmp/rgb-led.sock
+```
+
+### Relayer vers TCP avec socat
+
+Sur l'hôte QEMU, depuis la racine du dépôt, lancer le relais :
+
+```sh
+socat TCP-LISTEN:9999,reuseaddr UNIX-CONNECT:.build/rgb-led.sock
+```
+
+Puis sur la machine disposant de l'affichage graphique :
+
+```sh
+uv run tools/rgb_viewer.py --tcp hote-qemu:9999
+```
+
+Utiliser `127.0.0.1:9999` si les deux programmes sont sur le même hôte. Ce
+relais sert une connexion à la fois et doit être relancé après sa fermeture.
+Le visualiseur réessaie automatiquement pendant ce temps. Le flux sert
+uniquement à l'observation : le client ne transmet aucune commande.
+
+### Format et vérification
+
+Le flux contient une ligne ASCII `RRGGBB` suivie de `\n` par couleur publiée,
+par exemple `FF0000\n`. Il décrit la couleur appliquée, pas les valeurs de
+registres en cours de préparation. QEMU publie à la connexion, lors d'APPLY,
+à chaque pas du fondu, au reset et après restauration. Pour un client lent,
+les valeurs intermédiaires peuvent être regroupées au profit de la dernière
+couleur ; les lignes restent complètes.
+
+`make check` inclut la vérification de ce flux avec QTest, les reconnexions
+et le cas d'un client qui ne lit plus. Pour vérifier le client (protocole,
+Unix/TCP, reconnexion et dessin avec SDL sans écran) :
+
+```sh
+uv run --python 3.13 --with 'pygame>=2.6,<3' python -B tests/test_rgb_viewer.py
+```
+
+## 4. Référence des interfaces du stage 06
 
 ### Contrat utilisateur
 

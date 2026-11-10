@@ -6,6 +6,7 @@ QEMU_SRC := $(BUILD)/src/qemu
 QEMU_BUILD := $(BUILD)/qemu
 BUILDROOT_SRC := $(BUILD)/src/buildroot
 BUILDROOT_EXTERNAL := $(ROOT)/buildroot-external
+RGB_LED_SOCKET ?= $(BUILD)/rgb-led.sock
 RGB_DRIVER_STAGE ?= 06-hw-offloading
 BUILDROOT_OUTPUT := $(BUILD)/buildroot-output/$(RGB_DRIVER_STAGE)
 DRIVER_SOURCE := $(ROOT)/driver/stages/$(RGB_DRIVER_STAGE)/rgb.rs
@@ -66,6 +67,8 @@ run: qemu image
 	mkdir -p $(BUILD)/tmp
 	TMPDIR=$(BUILD)/tmp $(QEMU_BUILD)/qemu-system-aarch64 \
 		-machine virt -cpu cortex-a57 -m 1G -nographic -serial mon:stdio \
+		-chardev socket,id=rgb_led,path=$(RGB_LED_SOCKET),server=on,wait=off \
+		-global rgb-led.chardev=rgb_led \
 		-kernel $(BUILDROOT_OUTPUT)/images/Image \
 		-append "console=ttyAMA0 root=/dev/vda" \
 		-drive file=$(BUILDROOT_OUTPUT)/images/rootfs.ext4,if=none,id=hd0,format=raw \

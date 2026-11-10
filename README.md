@@ -100,6 +100,7 @@ la seconde produit `slides/linux_rust_drivers.pdf`.
 | `buildroot-external/` | Configuration Buildroot et noyau, patches Linux et injection du pilote sélectionné dans la construction. |
 | `integrations/` | Patches d'intégration du périphérique dans QEMU et du support Linux/Rust dans Buildroot. |
 | `scripts/` | Vérification de la structure et préparation des clones de construction QEMU et Buildroot. |
+| `tools/` | Visualiseur Pygame de la LED, lancé avec `uv`, via socket Unix ou relais TCP. |
 | `tests/` | Tests du périphérique QEMU et vérifications des pilotes dans la VM. |
 | `vendor/` | Sous-modules QEMU et Buildroot épinglés à des versions précises. |
 | `.build/` | Répertoire généré : clones de construction, téléchargements, caches, outils, modules et images de VM. |

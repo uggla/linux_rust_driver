@@ -10,6 +10,8 @@
 #include "qemu/module.h"
 #include "qemu/timer.h"
 #include "hw/core/irq.h"
+#include "hw/core/qdev-properties-system.h"
+#include "chardev/char-fe.h"
 
 #define TYPE_RGB_LED "rgb-led"
 OBJECT_DECLARE_SIMPLE_TYPE(RGBLedState, RGB_LED)
@@ -21,12 +23,13 @@ enum {
     RGB_LED_REG_GREEN  = 0x04,
     RGB_LED_REG_BLUE   = 0x08,
     RGB_LED_REG_APPLY  = 0x0c,
-    RGB_LED_REG_STATUS = 0x10,
-    RGB_LED_REG_TARGET = 0x14,
-    RGB_LED_REG_DURATION = 0x18,
-    RGB_LED_REG_COMMAND = 0x1c,
-    RGB_LED_REG_IRQ_STATUS = 0x20,
-    RGB_LED_REG_IRQ_ENABLE = 0x24,
+    /* Used only by stage 06: hardware fade and completion IRQ. */
+    RGB_LED_REG_STATUS = 0x10,     /* Read-only: BUSY=0, READY=1, ERROR=2. */
+    RGB_LED_REG_TARGET = 0x14,     /* Target color: 0x00RRGGBB. */
+    RGB_LED_REG_DURATION = 0x18,   /* Fade duration: 1 to 60000 ms. */
+    RGB_LED_REG_COMMAND = 0x1c,    /* Write 1 to start, 2 to cancel; reads 0. */
+    RGB_LED_REG_IRQ_STATUS = 0x20, /* Bit 0: completion pending; write 1 to ack. */
+    RGB_LED_REG_IRQ_ENABLE = 0x24, /* Bit 0: enable the IRQ line. */
 };
 
 enum {
@@ -51,7 +54,104 @@ struct RGBLedState {
     int64_t start_ms;
     QEMUTimer *timer;
     qemu_irq irq;
+
+    /* Host observation only: transport state is deliberately not migrated. */
+    CharFrontend chr;
+    bool connected, latest_pending;
+    char tx[7], latest[7];
+    unsigned tx_offset, tx_length;
+    guint write_watch;
 };
+
+static void rgb_led_flush(RGBLedState *s);
+
+static void rgb_led_clear_transport(RGBLedState *s)
+{
+    if (s->write_watch) {
+        g_source_remove(s->write_watch);
+        s->write_watch = 0;
+    }
+    s->tx_offset = s->tx_length = 0;
+    s->latest_pending = false;
+}
+
+static gboolean rgb_led_writable(void *unused, GIOCondition condition,
+                                 void *opaque)
+{
+    RGBLedState *s = opaque;
+
+    s->write_watch = 0;
+    if (!(condition & (G_IO_HUP | G_IO_ERR))) {
+        rgb_led_flush(s);
+    }
+    return G_SOURCE_REMOVE;
+}
+
+static void rgb_led_flush(RGBLedState *s)
+{
+    while (s->connected && s->tx_length) {
+        int written = qemu_chr_fe_write(&s->chr,
+            (uint8_t *)s->tx + s->tx_offset, s->tx_length - s->tx_offset);
+
+        if (written > 0) {
+            s->tx_offset += written;
+        }
+        if (s->tx_offset < s->tx_length) {
+            /* Never wait for a slow visualizer in the device/timer callback. */
+            s->write_watch = qemu_chr_fe_add_watch(&s->chr,
+                G_IO_OUT | G_IO_HUP | G_IO_ERR, rgb_led_writable, s);
+            return;
+        }
+        s->tx_offset = s->tx_length = 0;
+        if (s->latest_pending) {
+            memcpy(s->tx, s->latest, sizeof(s->tx));
+            s->tx_length = sizeof(s->tx);
+            s->latest_pending = false;
+        }
+    }
+}
+
+static void rgb_led_publish(RGBLedState *s)
+{
+    char line[8];
+
+    if (!s->connected) {
+        return;
+    }
+    snprintf(line, sizeof(line), "%02X%02X%02X\n",
+             s->applied_red, s->applied_green, s->applied_blue);
+    if (s->tx_length) {
+        memcpy(s->latest, line, sizeof(s->latest));
+        s->latest_pending = true;
+    } else {
+        memcpy(s->tx, line, sizeof(s->tx));
+        s->tx_length = sizeof(s->tx);
+    }
+    if (!s->write_watch) {
+        rgb_led_flush(s);
+    }
+}
+
+static void rgb_led_chr_event(void *opaque, QEMUChrEvent event)
+{
+    RGBLedState *s = opaque;
+
+    if (event == CHR_EVENT_OPENED || event == CHR_EVENT_CLOSED) {
+        rgb_led_clear_transport(s);
+        s->connected = event == CHR_EVENT_OPENED;
+        if (s->connected) {
+            rgb_led_publish(s);
+        }
+    }
+}
+
+static void rgb_led_realize(DeviceState *dev, Error **errp)
+{
+    RGBLedState *s = RGB_LED(dev);
+
+    qemu_chr_fe_set_handlers(&s->chr, NULL, NULL, rgb_led_chr_event,
+                             NULL, s, NULL, true);
+}
 
 static void rgb_led_update_irq(RGBLedState *s)
 {
@@ -78,6 +178,7 @@ static void rgb_led_tick(void *opaque)
     s->applied_red = s->red;
     s->applied_green = s->green;
     s->applied_blue = s->blue;
+    rgb_led_publish(s);
     printf("rgb-led: fade RGB(%u, %u, %u)\n", s->red, s->green, s->blue);
     if (elapsed == s->duration_ms) {
         s->status = RGB_LED_STATUS_READY;
@@ -123,6 +224,7 @@ static void rgb_led_apply(RGBLedState *s)
     s->applied_red = s->red;
     s->applied_green = s->green;
     s->applied_blue = s->blue;
+    rgb_led_publish(s);
     printf("rgb-led: apply RGB(%u, %u, %u)\n",
            s->red, s->green, s->blue);
 }
@@ -222,6 +324,7 @@ static void rgb_led_reset(DeviceState *dev)
     s->green = 0;
     s->blue = 0;
     s->status = RGB_LED_STATUS_READY;
+    rgb_led_publish(s);
 }
 
 static int rgb_led_post_load(void *opaque, int version_id)
@@ -232,6 +335,7 @@ static int rgb_led_post_load(void *opaque, int version_id)
         return -EINVAL;
     }
     rgb_led_update_irq(s);
+    rgb_led_publish(s);
     return 0;
 }
 
@@ -274,8 +378,16 @@ static void rgb_led_init(Object *obj)
 
 static void rgb_led_finalize(Object *obj)
 {
-    timer_free(RGB_LED(obj)->timer);
+    RGBLedState *s = RGB_LED(obj);
+
+    rgb_led_clear_transport(s);
+    qemu_chr_fe_deinit(&s->chr, false);
+    timer_free(s->timer);
 }
+
+static const Property rgb_led_properties[] = {
+    DEFINE_PROP_CHR("chardev", RGBLedState, chr),
+};
 
 static void rgb_led_class_init(ObjectClass *klass, const void *data)
 {
@@ -283,6 +395,8 @@ static void rgb_led_class_init(ObjectClass *klass, const void *data)
 
     device_class_set_legacy_reset(dc, rgb_led_reset);
     dc->vmsd = &vmstate_rgb_led;
+    dc->realize = rgb_led_realize;
+    device_class_set_props(dc, rgb_led_properties);
 }
 
 static const TypeInfo rgb_led_info = {

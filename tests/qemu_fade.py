@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 """QTest/QMP checks: interpolation, IRQ level, reset, snapshot restore."""
 import json
+import re
 import pathlib
 import socket
 import subprocess
@@ -36,6 +37,8 @@ with tempfile.TemporaryDirectory() as temp:
             '-qmp', f'unix:{temp}/qmp,server=on,wait=off',
             '-drive', f'file={disk},if=none,id=state,format=qcow2',
             '-device', 'virtio-blk-device,drive=state',
+            '-chardev', f'socket,id=led,path={temp}/led,server=on,wait=off',
+            '-global', 'rgb-led.chardev=led',
         ], stdout=log, stderr=log)
         try:
             qtest = connect(temp / 'qtest', process)
@@ -50,6 +53,25 @@ with tempfile.TemporaryDirectory() as temp:
                     assert 'error' not in reply, reply
                     return reply['return']
             command('qmp_capabilities')
+            led = socket.socket(socket.AF_UNIX, socket.SOCK_STREAM)
+            led.settimeout(5)
+            led.connect(str(temp / 'led'))
+            led_buffer = b''
+            def color_line():
+                global led_buffer
+                while b'\n' not in led_buffer:
+                    chunk = led.recv(4096)
+                    assert chunk, 'LED stream closed'
+                    led_buffer += chunk
+                line, led_buffer = led_buffer.split(b'\n', 1)
+                assert re.fullmatch(b'[0-9A-F]{6}', line), line
+                return line
+            def until_color(expected):
+                for _ in range(10000):
+                    if color_line() == expected:
+                        return
+                raise AssertionError(f'missing color {expected}')
+            assert color_line() == b'000000'
             levels = []
             def qt(line):
                 qtest.write(line.encode() + b'\n')
@@ -82,12 +104,14 @@ with tempfile.TemporaryDirectory() as temp:
             qt(f'irq_intercept_out {device} sysbus-irq')
             write(0x00, 255)
             write(0x0c, 1)
+            assert color_line() == b'FF0000'
             write(0x14, 0)
             write(0x18, 1000)
             write(0x24, 1)
             write(0x1c, 1)
             step(500)
             middle = read(0)
+            until_color(f'{middle:02X}0000'.encode())
             assert 100 <= middle <= 150, middle
             # Snapshot records a running timer and interpolation origin.
             command('stop')
@@ -96,6 +120,7 @@ with tempfile.TemporaryDirectory() as temp:
             command('cont')
             step(500)
             assert read(0) == 0 and read(0x20) == 1
+            until_color(b'000000')
             assert any(line == 'IRQ raise 0' for line in levels), levels
             write(0x20, 1)
             assert read(0x20) == 0
@@ -105,6 +130,7 @@ with tempfile.TemporaryDirectory() as temp:
             assert not result.strip(), result
             assert read(0x10) == 0
             assert read(0) == middle
+            until_color(f'{middle:02X}0000'.encode())
             command('cont')
             # Restore VMState + timer; advancing virtual time finishes once.
             step(1000)
@@ -121,6 +147,37 @@ with tempfile.TemporaryDirectory() as temp:
             command('system_reset')
             step(2000)
             assert read(0) == 0 and read(0x10) == 1 and read(0x20) == 0
+            until_color(b'000000')
+            # A viewer that stops reading must never stall the device or IRQ.
+            for _ in range(3000):
+                write(0x0c, 1)
+            write(0x14, 0xff)
+            write(0x18, 100)
+            write(0x24, 1)
+            write(0x1c, 1)
+            step(100)
+            assert read(0x20) == 1, 'slow viewer stalled completion IRQ'
+            write(0x20, 1)
+            write(0, 0x12)
+            write(4, 0x34)
+            write(8, 0x56)
+            write(0x0c, 1)
+            until_color(b'123456')
+            led.close()
+            # No viewer attached: hardware must still finish and raise its IRQ.
+            write(0x14, 0)
+            write(0x18, 100)
+            write(0x24, 1)
+            write(0x1c, 1)
+            step(100)
+            assert read(0x20) == 1
+            led = socket.socket(socket.AF_UNIX, socket.SOCK_STREAM)
+            led.settimeout(5)
+            led.connect(str(temp / 'led'))
+            led_buffer = b''
+            assert color_line() == b'000000'
+            led.close()
+            print('QEMU socket/color/reconnection checks: OK')
             print('QEMU fade/reset/VMState checks: OK')
         except Exception:
             print((temp / 'qemu.log').read_text(), file=sys.stderr)
