@@ -2,7 +2,7 @@
 
 Ce guide commence par la validation du projet avec le stage final, puis décrit
 la démonstration progressive des six stages. Les commandes **hôte** se lancent
-à la racine du dépôt `phase_01` ; les commandes **VM** se lancent dans Linux invité.
+à la racine du dépôt ; les commandes **VM** se lancent dans Linux invité.
 
 ## 1. Valider le projet — stage 06 par défaut
 
